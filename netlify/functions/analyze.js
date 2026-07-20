@@ -39,7 +39,8 @@ exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return resp(204, {});
   if (event.httpMethod !== 'POST')    return resp(405, { error: 'Méthode non autorisée.' });
 
-  const API_KEY     = process.env.ANTHROPIC_API_KEY || '';
+  // Accepte le nom recommandé ANTHROPIC_API_KEY, ou le nom générique "key"/"KEY".
+  const API_KEY     = process.env.ANTHROPIC_API_KEY || process.env.key || process.env.KEY || '';
   const ACCESS_CODE = process.env.ACCESS_CODE || '';
   if (!API_KEY) return resp(500, { error: 'Configuration serveur incomplète (clé API manquante).' });
 
