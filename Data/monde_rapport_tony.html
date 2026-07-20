@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monde. — Rapport de Tony</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0B0A08;
+    --ink-soft: #1B1914;
+    --paper: #F3F0E7;
+    --paper-soft: #EAE6D9;
+    --sun: #E8A33D;
+    --sun-deep: #C77F1B;
+    --sun-dark: #3D2703;
+    --line-dark: rgba(243, 240, 231, 0.14);
+    --line-light: rgba(11, 10, 8, 0.1);
+    --muted-dark: rgba(243, 240, 231, 0.55);
+    --muted-strong: rgba(243, 240, 231, 0.75);
+    --muted-light: rgba(11, 10, 8, 0.55);
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+
+  .serif { font-family: 'Instrument Serif', serif; }
+  .italic { font-style: italic; }
+
+  .page { max-width: 860px; margin: 0 auto; padding: 0 2rem; }
+
+  /* ── COVER ── */
+  .cover {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 5rem 0 4rem;
+  }
+  .cover-inner { max-width: 860px; margin: 0 auto; padding: 0 2rem; }
+  .cover-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-dark);
+    margin-bottom: 5rem;
+  }
+  .cover-meta .name {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 15px;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--paper);
+  }
+  .cover-brand {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(4.5rem, 14vw, 8rem);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+  }
+  .cover-brand .dot { color: var(--sun); }
+  .cover-tagline {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: clamp(1.4rem, 4vw, 1.9rem);
+    color: var(--sun);
+    margin-bottom: 3rem;
+  }
+  .cover-desc {
+    font-size: 16px;
+    color: var(--muted-dark);
+    max-width: 520px;
+    line-height: 1.7;
+  }
+  .cover-desc strong { color: var(--paper); font-weight: 400; }
+
+  /* ── NAV ── */
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 0;
+    border-bottom: 0.5px solid var(--line-light);
+    font-size: 12px;
+  }
+  .nav-brand {
+    font-family: 'Instrument Serif', serif;
+    font-size: 20px;
+  }
+  .nav-brand .dot { color: var(--sun-deep); }
+  .nav-meta {
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted-light);
+    font-size: 10px;
+  }
+
+  /* ── HEADER ── */
+  .r-head { padding: 4rem 0 3rem; }
+  .r-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-light);
+    margin-bottom: 3rem;
+  }
+  .r-meta .name {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 16px;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--ink);
+  }
+  .r-headline {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2.4rem, 6vw, 3.6rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    max-width: 760px;
+  }
+  .r-headline .accent {
+    font-style: italic;
+    background: linear-gradient(transparent 62%, rgba(232, 163, 61, 0.5) 62%);
+    padding: 0 4px;
+  }
+  .r-tagline {
+    font-size: 16px;
+    color: var(--muted-light);
+    max-width: 560px;
+    line-height: 1.7;
+  }
+
+  /* ── SECTIONS ── */
+  .section { padding: 3.5rem 0; border-top: 0.5px solid var(--line-light); }
+  .s-label {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sun-deep);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .s-label::before { content: ''; width: 28px; height: 0.5px; background: var(--ink); }
+
+  /* ── MONDE PRINCIPAL ── */
+  .monde {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 3rem 2.5rem;
+    border-radius: 4px;
+  }
+  .monde-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 0.5px solid var(--line-dark);
+  }
+  .monde-kicker {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--sun);
+  }
+  .monde-match {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 24px;
+    color: var(--sun);
+  }
+  .monde-match small {
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted-dark);
+    margin-left: 6px;
+  }
+  .monde-nom {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: clamp(3.2rem, 9vw, 5.2rem);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.75rem;
+  }
+  .monde-precision {
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    color: var(--sun);
+    margin-bottom: 2rem;
+  }
+  .monde-narration {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 20px;
+    line-height: 1.5;
+    color: var(--muted-strong);
+    max-width: 640px;
+    margin-bottom: 2.5rem;
+  }
+  .preuves-label {
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted-dark);
+    margin-bottom: 1.25rem;
+  }
+  .preuves {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 2.5rem;
+  }
+  .preuve {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--muted-strong);
+    padding-left: 18px;
+    position: relative;
+  }
+  .preuve::before { content: '—'; position: absolute; left: 0; color: var(--sun); }
+  .preuve strong { color: var(--paper); font-weight: 500; }
+
+  /* Mondes secondaires */
+  .mondes-sec {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--line-light);
+    border: 0.5px solid var(--line-light);
+    border-top: none;
+  }
+  .monde-sec { background: var(--paper); padding: 1.5rem 1.75rem; }
+  .monde-sec-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .monde-sec-kicker {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-light);
+  }
+  .monde-sec-match {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--sun-deep);
+  }
+  .monde-sec-nom { font-family: 'Instrument Serif', serif; font-size: 24px; margin-bottom: 4px; }
+  .monde-sec-precision { font-size: 12px; color: var(--muted-light); line-height: 1.5; }
+
+  /* ── FACETTES ── */
+  .facettes {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    border-top: 0.5px solid var(--line-light);
+    border-left: 0.5px solid var(--line-light);
+  }
+  .facette {
+    padding: 2rem 1.75rem;
+    border-right: 0.5px solid var(--line-light);
+    border-bottom: 0.5px solid var(--line-light);
+  }
+  .facette-verbe {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 32px;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .facette-verbe::after { content: '.'; color: var(--sun-deep); }
+  .facette-desc { font-size: 13px; color: var(--muted-light); line-height: 1.6; }
+
+  /* ── INSIGHT ── */
+  .insight {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 2.5rem;
+    border-radius: 4px;
+  }
+  .insight-label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sun);
+    margin-bottom: 1.25rem;
+  }
+  .insight-text {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 22px;
+    line-height: 1.45;
+    max-width: 640px;
+  }
+  .insight-text::before { content: '« '; color: var(--sun); }
+  .insight-text::after { content: ' »'; color: var(--sun); }
+
+  /* ── TRAITS ── */
+  .traits { display: grid; gap: 1.5rem; max-width: 640px; }
+  .trait-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .trait-name { font-size: 15px; font-weight: 400; }
+  .trait-val { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 18px; }
+  .trait-val small { font-size: 12px; color: var(--muted-light); }
+  .trait-bar { height: 1px; background: var(--line-light); position: relative; }
+  .trait-fill { position: absolute; inset: -1px auto -1px 0; background: var(--sun-deep); }
+
+  /* ── MÉTIERS ── */
+  .metiers { display: grid; gap: 1px; background: var(--line-light); border: 0.5px solid var(--line-light); }
+  .metier { background: var(--paper); padding: 2rem; display: grid; grid-template-columns: 1fr 100px; gap: 2rem; }
+  .metier.top { background: var(--ink); color: var(--paper); }
+  .metier-rank {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--sun-deep);
+    margin-bottom: 8px;
+  }
+  .metier.top .metier-rank { color: var(--sun); }
+  .metier-nom { font-family: 'Instrument Serif', serif; font-size: 27px; line-height: 1.15; margin-bottom: 10px; }
+  .metier-desc { font-size: 13px; line-height: 1.65; color: var(--muted-light); margin-bottom: 1.5rem; max-width: 560px; }
+  .metier.top .metier-desc { color: var(--muted-strong); }
+  .metier-data {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 0.5px solid var(--line-light);
+    padding-top: 1.25rem;
+  }
+  .metier.top .metier-data { border-color: var(--line-dark); }
+  .metier-data-item { padding-right: 14px; }
+  .metier-data-item + .metier-data-item { border-left: 0.5px solid var(--line-light); padding-left: 16px; }
+  .metier.top .metier-data-item + .metier-data-item { border-color: var(--line-dark); }
+  .md-label {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-light);
+    margin-bottom: 6px;
+  }
+  .metier.top .md-label { color: var(--muted-dark); }
+  .md-val { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 21px; line-height: 1.1; }
+  .md-unit { font-family: 'Inter', sans-serif; font-style: normal; font-size: 11px; color: var(--muted-light); }
+  .metier.top .md-unit { color: var(--muted-dark); }
+  .md-voies { font-family: 'Inter', sans-serif; font-style: normal; font-size: 12.5px; line-height: 1.55; font-weight: 300; }
+  .metier-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 1.25rem; }
+  .metier-tag {
+    font-size: 11px;
+    padding: 4px 11px;
+    border-radius: 100px;
+    border: 0.5px solid rgba(11, 10, 8, 0.18);
+    color: var(--muted-light);
+  }
+  .metier.top .metier-tag { border-color: var(--line-dark); color: var(--muted-strong); }
+  .metier-match { text-align: right; border-left: 0.5px solid var(--line-light); padding-left: 1.5rem; display: flex; flex-direction: column; justify-content: center; }
+  .metier.top .metier-match { border-color: var(--line-dark); }
+  .mm-val { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 44px; line-height: 0.9; }
+  .metier.top .mm-val { color: var(--sun); }
+  .mm-val small { font-size: 18px; }
+  .mm-label { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted-light); margin-top: 8px; }
+  .metier.top .mm-label { color: var(--muted-dark); }
+
+  /* ── ENVIRONNEMENTS ── */
+  .envs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    border-top: 0.5px solid var(--line-light);
+    border-left: 0.5px solid var(--line-light);
+  }
+  .env { padding: 2rem 1.75rem; border-right: 0.5px solid var(--line-light); border-bottom: 0.5px solid var(--line-light); }
+  .env-num { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 13px; color: var(--sun-deep); margin-bottom: 1rem; }
+  .env-titre { font-family: 'Instrument Serif', serif; font-size: 23px; margin-bottom: 6px; }
+  .env-desc { font-size: 13px; color: var(--muted-light); line-height: 1.6; }
+
+  /* ── CONSEILLER ── */
+  .conseiller {
+    background: rgba(232, 163, 61, 0.14);
+    border-left: 2px solid var(--sun-deep);
+    padding: 2.25rem 2rem;
+    border-radius: 0 4px 4px 0;
+  }
+  .conseiller-label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sun-dark);
+    margin-bottom: 1rem;
+  }
+  .conseiller-text {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 19px;
+    line-height: 1.55;
+    max-width: 640px;
+  }
+
+  /* ── FOOTER ── */
+  .r-footer {
+    background: var(--ink);
+    color: var(--paper);
+    margin-top: 3.5rem;
+    padding: 3.5rem 0;
+  }
+  .r-footer-inner { max-width: 860px; margin: 0 auto; padding: 0 2rem; text-align: center; }
+  .rf-title { font-family: 'Instrument Serif', serif; font-size: clamp(1.8rem, 4vw, 2.4rem); line-height: 1.15; margin-bottom: 1rem; }
+  .rf-title .italic { color: var(--sun); }
+  .rf-sub { font-size: 14px; color: var(--muted-dark); max-width: 420px; margin: 0 auto 2rem; line-height: 1.65; }
+  .rf-note {
+    padding-top: 2rem;
+    border-top: 0.5px solid var(--line-dark);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted-dark);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 640px) {
+    .monde { padding: 2rem 1.5rem; }
+    .preuves { grid-template-columns: 1fr; }
+    .mondes-sec { grid-template-columns: 1fr; }
+    .facettes { grid-template-columns: 1fr; }
+    .envs { grid-template-columns: 1fr; }
+    .metier { grid-template-columns: 1fr; gap: 1.25rem; padding: 1.5rem; }
+    .metier-match { border-left: none; border-top: 0.5px solid var(--line-light); padding: 1rem 0 0; text-align: left; flex-direction: row; align-items: baseline; gap: 12px; }
+    .metier.top .metier-match { border-color: var(--line-dark); }
+    .mm-val { font-size: 32px; }
+    .mm-label { margin-top: 0; }
+    .metier-data { grid-template-columns: 1fr; gap: 12px; }
+    .metier-data-item + .metier-data-item { border-left: none; border-top: 0.5px solid var(--line-light); padding: 12px 0 0; }
+    .metier.top .metier-data-item + .metier-data-item { border-color: var(--line-dark); }
+    .rf-note { flex-direction: column; gap: 8px; }
+  }
+
+  @media print {
+    .monde, .insight, .metier.top, .r-footer, .conseiller { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-inner">
+    <div class="cover-meta">
+      <span>Rapport individuel · Juillet 2026</span>
+      <span class="name">Tony, 16 ans</span>
+    </div>
+    <h1 class="cover-brand">Monde<span class="dot">.</span></h1>
+    <p class="cover-tagline">Trouve ton monde.</p>
+    <p class="cover-desc">
+      Tony, ce rapport a été écrit pour toi, à partir de <strong>94 jours de tes données</strong> TikTok et Instagram. Il ne va pas te dire quel métier faire — il va te dire <strong>quel monde est le tien</strong>. La suite t'appartient.
+    </p>
+  </div>
+</div>
+
+<div class="page">  <!-- HEADER -->
+  <header class="r-head">
+    <h1 class="r-headline">
+      Ton monde, <span class="accent">c'est l'automobile.</span><br>Et il a beaucoup à te dire.
+    </h1>
+    <p class="r-tagline">
+      Une passion précise, des mains qui savent ce qu'elles veulent, et un terrain qui peut devenir bien plus qu'un loisir.
+    </p>
+  </header>
+
+  <!-- I. TON MONDE -->
+  <section class="section">
+    <div class="s-label">I. Ton monde</div>
+    <div class="monde">
+      <div class="monde-top">
+        <span class="monde-kicker">— Univers principal</span>
+        <span class="monde-match">94%<small>Match</small></span>
+      </div>
+      <h2 class="monde-nom">L'automobile</h2>
+      <div class="monde-precision">Tuning · Restauration · Culture auto passion</div>
+      <p class="monde-narration">
+        Quand tu regardes une vidéo de mécanique ou de préparation auto, tu la regardes en entier. Pas en diagonale. Tu suis des préparateurs, tu cherches des CAP mécanique, tu joues à Forza le soir. Ce n'est pas une curiosité — c'est ton terrain. Le tien.
+      </p>
+      <div class="preuves-label">Ce qu'on a vu dans tes données</div>
+      <div class="preuves">
+        <div class="preuve"><strong>82%</strong> de ton temps de visionnage porte sur du contenu automobile — tuning, restauration, drift</div>
+        <div class="preuve"><strong>37 comptes</strong> suivis liés à la mécanique, la préparation et la culture auto</div>
+        <div class="preuve">Recherches actives : <strong>« CAP mécanique auto »</strong>, <strong>« comment ouvrir un garage »</strong>, « tuning légal »</div>
+        <div class="preuve">Engagement profond — commentaires et enregistrements — sur les projets de <strong>restauration longue durée</strong></div>
+      </div>
+    </div>
+    <div class="mondes-sec">
+      <div class="monde-sec">
+        <div class="monde-sec-top">
+          <span class="monde-sec-kicker">— Univers secondaire</span>
+          <span class="monde-sec-match">71%</span>
+        </div>
+        <div class="monde-sec-nom">Le street art</div>
+        <div class="monde-sec-precision">Graphisme, lettrage, culture urbaine — ton œil pour le visuel est réel, et il peut se croiser avec l'automobile.</div>
+      </div>
+      <div class="monde-sec">
+        <div class="monde-sec-top">
+          <span class="monde-sec-kicker">— Univers tertiaire</span>
+          <span class="monde-sec-match">64%</span>
+        </div>
+        <div class="monde-sec-nom">Le gaming racing</div>
+        <div class="monde-sec-precision">Forza, GT, simulation — le prolongement numérique de ta passion, et une communauté où tu es déjà chez toi.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- II. FACETTES -->
+  <section class="section">
+    <div class="s-label">II. Ce qui te fait vibrer dans ce monde</div>
+    <div class="facettes">
+      <div class="facette">
+        <div class="facette-verbe">Réparer</div>
+        <div class="facette-desc">Tu aimes comprendre ce qui ne marche pas et le remettre en état. Le diagnostic te passionne autant que la solution.</div>
+      </div>
+      <div class="facette">
+        <div class="facette-verbe">Personnaliser</div>
+        <div class="facette-desc">Tu vois chaque voiture comme une base à transformer. Le style compte autant que la performance.</div>
+      </div>
+      <div class="facette">
+        <div class="facette-verbe">Entreprendre</div>
+        <div class="facette-desc">L'idée d'avoir ton propre atelier revient dans tes recherches. L'indépendance t'attire plus que le salariat.</div>
+      </div>
+      <div class="facette">
+        <div class="facette-verbe">Transmettre</div>
+        <div class="facette-desc">Tu consommes énormément de tutos. Un jour, tu pourrais en faire — expliquer, montrer, partager le geste.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- III. LECTURE -->
+  <section class="section">
+    <div class="s-label">III. Ce que l'IA a vu</div>
+    <div class="insight">
+      <div class="insight-label">Lecture</div>
+      <p class="insight-text">Tony ne s'intéresse pas à la voiture comme objet — il s'y intéresse comme à un langage. C'est par la mécanique qu'il pense, qu'il apprend, qu'il se projette. Lui proposer un autre univers serait passer à côté de ce qui l'allume vraiment.</p>
+    </div>
+  </section>
+
+  <!-- IV. FONCTIONNEMENT -->
+  <section class="section">
+    <div class="s-label">IV. Comment tu fonctionnes</div>
+    <div class="traits">
+      <div>
+        <div class="trait-head"><span class="trait-name">Apprentissage par la pratique</span><span class="trait-val">93<small>%</small></span></div>
+        <div class="trait-bar"><div class="trait-fill" style="width:93%"></div></div>
+      </div>
+      <div>
+        <div class="trait-head"><span class="trait-name">Sens du détail technique</span><span class="trait-val">87<small>%</small></span></div>
+        <div class="trait-bar"><div class="trait-fill" style="width:87%"></div></div>
+      </div>
+      <div>
+        <div class="trait-head"><span class="trait-name">Esprit entrepreneurial</span><span class="trait-val">72<small>%</small></span></div>
+        <div class="trait-bar"><div class="trait-fill" style="width:72%"></div></div>
+      </div>
+      <div>
+        <div class="trait-head"><span class="trait-name">Travail collectif</span><span class="trait-val">58<small>%</small></span></div>
+        <div class="trait-bar"><div class="trait-fill" style="width:58%"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- V. PORTES D'ENTRÉE -->
+  <section class="section">
+    <div class="s-label">V. Des portes d'entrée vers ce monde</div>
+    <div class="metiers">
+
+      <div class="metier top">
+        <div>
+          <div class="metier-rank">i.</div>
+          <div class="metier-nom">Mécanicien spécialisé / préparateur auto</div>
+          <p class="metier-desc">Travailler sur des moteurs, optimiser, préparer. La porte d'entrée la plus directe vers ton monde — avec un vrai marché, une pénurie de profils, et beaucoup d'évolutions possibles vers la préparation sportive.</p>
+          <div class="metier-data">
+            <div class="metier-data-item">
+              <div class="md-label">Salaire</div>
+              <div class="md-val">1 800<span class="md-unit"> → 3 200 € / mois</span></div>
+            </div>
+            <div class="metier-data-item">
+              <div class="md-label">Études</div>
+              <div class="md-val">2<span class="md-unit"> ans · CAP / Bac Pro</span></div>
+            </div>
+            <div class="metier-data-item">
+              <div class="md-label">Voies possibles</div>
+              <div class="md-val md-voies">CAP Maintenance des véhicules · Bac Pro MV · Mention complémentaire spé.</div>
+            </div>
+          </div>
+          <div class="metier-tags">
+            <span class="metier-tag">Manuel</span>
+            <span class="metier-tag">Précis</span>
+            <span class="metier-tag">Passion</span>
+          </div>
+        </div>
+        <div class="metier-match">
+          <div class="mm-val">94<small>%</small></div>
+          <div class="mm-label">Match</div>
+        </div>
+      </div>
+
+      <div class="metier">
+        <div>
+          <div class="metier-rank">ii.</div>
+          <div class="metier-nom">Carrossier-peintre / customisateur</div>
+          <p class="metier-desc">Transformer l'apparence d'une voiture, faire du sur-mesure, travailler la matière et la couleur. Le pont parfait entre ta passion auto et ton œil pour le street art.</p>
+          <div class="metier-data">
+            <div class="metier-data-item">
+              <div class="md-label">Salaire</div>
+              <div class="md-val">1 900<span class="md-unit"> → 3 400 € / mois</span></div>
+            </div>
+            <div class="metier-data-item">
+              <div class="md-label">Études</div>
+              <div class="md-val">2<span class="md-unit"> ans · CAP / Bac Pro</span></div>
+            </div>
+            <div class="metier-data-item">
+              <div class="md-label">Voies possibles</div>
+              <div class="md-val md-voies">CAP Carrosserie · Bac Pro Réparation des carrosseries · Apprentissage</div>
+            </div>
+          </div>
+          <div class="metier-tags">
+            <span class="metier-tag">Manuel</span>
+            <span class="metier-tag">Créatif</span>
+            <span class="metier-tag">Esthétique</span>
+          </div>
+        </div>
+        <div class="metier-match">
+          <div class="mm-val">88<small>%</small></div>
+          <div class="mm-label">Match</div>
+        </div>
+      </div>
+
+      <div class="metier">
+        <div>
+          <div class="metier-rank">iii.</div>
+          <div class="metier-nom">Restaurateur de voitures anciennes</div>
+          <p class="metier-desc">Un métier rare et recherché, où chaque véhicule devient un projet de plusieurs mois. Pour ceux qui aiment l'histoire, la patience et le geste juste — exactement ce que tes données racontent.</p>
+          <div class="metier-data">
+            <div class="metier-data-item">
+              <div class="md-label">Salaire</div>
+              <div class="md-val">2 000<span class="md-unit"> → 4 500 € / mois</span></div>
+            </div>
+            <div class="metier-data-item">
+              <div class="md-label">Études</div>
+              <div class="md-val">3<span class="md-unit"> ans · spé. après CAP</span></div>
+            </div>
+            <div class="metier-data-item">
+              <div class="md-label">Voies possibles</div>
+              <div class="md-val md-voies">Formation FFVE · CFA véhicules anciens · Apprentissage en atelier réputé</div>
+            </div>
+          </div>
+          <div class="metier-tags">
+            <span class="metier-tag">Niche</span>
+            <span class="metier-tag">Passion</span>
+            <span class="metier-tag">Patrimoine</span>
+          </div>
+        </div>
+        <div class="metier-match">
+          <div class="mm-val">85<small>%</small></div>
+          <div class="mm-label">Match</div>
+        </div>
+      </div>
+
+      <div class="metier">
+        <div>
+          <div class="metier-rank">iv.</div>
+          <div class="metier-nom">Gérant de garage indépendant</div>
+          <p class="metier-desc">Ton garage, ton équipe, tes clients. Le métier d'après — celui qui combine ta passion technique et ton envie d'autonomie. Tes recherches montrent que tu y penses déjà.</p>
+          <div class="metier-data">
+            <div class="metier-data-item">
+              <div class="md-label">Salaire</div>
+              <div class="md-val">2 200<span class="md-unit"> → 5 000 € / mois</span></div>
+            </div>
+            <div class="metier-data-item">
+              <div class="md-label">Études</div>
+              <div class="md-val">4<span class="md-unit"> ans · Bac Pro + BM</span></div>
+            </div>
+            <div class="metier-data-item">
+              <div class="md-label">Voies possibles</div>
+              <div class="md-val md-voies">Bac Pro puis Brevet de Maîtrise · BTS Après-vente auto · Reprise après expérience</div>
+            </div>
+          </div>
+          <div class="metier-tags">
+            <span class="metier-tag">Entrepreneur</span>
+            <span class="metier-tag">Autonome</span>
+            <span class="metier-tag">Gestionnaire</span>
+          </div>
+        </div>
+        <div class="metier-match">
+          <div class="mm-val">79<small>%</small></div>
+          <div class="mm-label">Match</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- VI. ENVIRONNEMENTS -->
+  <section class="section">
+    <div class="s-label">VI. Où tu t'épanouiras</div>
+    <div class="envs">
+      <div class="env">
+        <div class="env-num">01.</div>
+        <div class="env-titre">L'atelier</div>
+        <div class="env-desc">Un espace de travail à toi, où l'outil et la matière dominent.</div>
+      </div>
+      <div class="env">
+        <div class="env-num">02.</div>
+        <div class="env-titre">Le garage indépendant</div>
+        <div class="env-desc">Un lieu de production et de relation client, à taille humaine.</div>
+      </div>
+      <div class="env">
+        <div class="env-num">03.</div>
+        <div class="env-titre">Le rassemblement</div>
+        <div class="env-desc">Les meetings et communautés où ta passion devient sociale.</div>
+      </div>
+      <div class="env">
+        <div class="env-num">04.</div>
+        <div class="env-titre">Le projet personnel</div>
+        <div class="env-desc">La voiture qu'on retape pendant des mois — école et fierté.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VII. ET MAINTENANT -->
+  <section class="section">
+    <div class="s-label">VII. Et maintenant ?</div>
+    <div class="conseiller" style="margin-bottom: 2rem;">
+      <div class="conseiller-label">Le plus important</div>
+      <p class="conseiller-text">Ce rapport n'est pas une réponse — c'est un point de départ. Il prend toute sa valeur quand tu en parles avec quelqu'un qui peut t'aider à transformer ton monde en parcours. Ne le garde pas pour toi.</p>
+    </div>
+    <div class="envs">
+      <div class="env">
+        <div class="env-num">→ Action 1</div>
+        <div class="env-titre">Transfère ce rapport</div>
+        <div class="env-desc">Envoie-le à ton conseiller d'orientation, ton formateur ou ton prof principal. Il reçoit une version détaillée qui lui permet de préparer votre échange — vous gagnez trois séances.</div>
+      </div>
+      <div class="env">
+        <div class="env-num">→ Action 2</div>
+        <div class="env-titre">Prends un rendez-vous</div>
+        <div class="env-desc">Avec ta Mission Locale, ton CIO ou le conseiller de ton établissement. Viens avec ce rapport : la conversation commencera là où les autres s'arrêtent.</div>
+      </div>
+      <div class="env">
+        <div class="env-num">→ Action 3</div>
+        <div class="env-titre">Parles-en autour de toi</div>
+        <div class="env-desc">À tes parents, à un proche — et surtout à quelqu'un qui travaille déjà dans l'automobile. Un mécano, un carrossier. Demande-lui comment il a commencé.</div>
+      </div>
+      <div class="env">
+        <div class="env-num">→ Action 4</div>
+        <div class="env-titre">Va voir sur le terrain</div>
+        <div class="env-desc">Un stage d'observation, une journée portes ouvertes de CFA, un meeting auto. Ton monde existe en vrai — va le rencontrer.</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- FOOTER -->
+<div class="r-footer">
+  <div class="r-footer-inner">
+    <h3 class="rf-title">Ton monde t'attend. <span class="italic">Parles-en.</span></h3>
+    <p class="rf-sub">Transfère ce rapport à ton conseiller ou ton formateur, et prends rendez-vous. C'est là que tout commence vraiment.</p>
+    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:2.5rem;">
+      <button onclick="shareReport()" style="background:var(--sun); color:var(--sun-dark); border:none; border-radius:100px; padding:14px 28px; font-family:'Inter',sans-serif; font-size:14px; font-weight:500; cursor:pointer;">Transférer à mon conseiller →</button>
+      <button onclick="alert('Fonctionnalité v1 — prise de rendez-vous avec un conseiller proche de chez toi.')" style="background:transparent; color:var(--paper); border:0.5px solid var(--line-dark); border-radius:100px; padding:14px 28px; font-family:'Inter',sans-serif; font-size:14px; cursor:pointer;">Prendre rendez-vous</button>
+    </div>
+    <div class="rf-note">
+      <span>Monde. — Rapport généré le 07.07.2026</span>
+      <span>Données traitées localement · Conforme RGPD</span>
+    </div>
+  </div>
+</div>
+
+<script>
+async function shareReport() {
+  const shareData = {
+    title: 'Mon rapport Monde.',
+    text: 'Voici mon rapport d\'orientation Monde. — mon monde, c\'est l\'automobile. J\'aimerais qu\'on en parle ensemble.',
+    url: window.location.href
+  };
+  if (navigator.share) {
+    try { await navigator.share(shareData); } catch(e) {}
+  } else {
+    window.location.href = 'mailto:?subject=' + encodeURIComponent(shareData.title) + '&body=' + encodeURIComponent(shareData.text + '\n\n' + shareData.url);
+  }
+}
+</script>
+
+</body>
+</html>

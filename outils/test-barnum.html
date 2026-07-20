@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Barnum à l'aveugle — Monde.</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{--green:#1D9E75;--green-d:#085041;--bg:#F7F6F2;--card:#fff;--ink:#1a1a18;--muted:#6b6b66;--border:rgba(0,0,0,.1);--purple:#7F77DD;--coral:#D85A30}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;padding:24px}
+  .wrap{max-width:1100px;margin:0 auto}
+  h1{font-size:24px;margin-bottom:4px}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:24px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+  .card-title{font-weight:700;margin-bottom:12px;font-size:15px}
+  textarea{width:100%;min-height:120px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;padding:10px;border:1px solid var(--border);border-radius:8px;resize:vertical}
+  input[type=text]{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px}
+  button{background:var(--green);color:#fff;border:none;padding:11px 22px;border-radius:100px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+  button:hover{background:var(--green-d)}
+  button.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--border)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:800px){.compare{grid-template-columns:1fr}}
+  .report{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:22px;cursor:pointer;transition:border-color .15s}
+  .report:hover{border-color:var(--green)}
+  .report.chosen{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.15)}
+  .report h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px}
+  .r-domaine{font-size:22px;font-style:italic;font-family:Georgia,serif;margin-bottom:8px}
+  .r-phrase{font-size:14px;color:var(--muted);margin-bottom:12px}
+  .r-block{margin:12px 0}
+  .r-block strong{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:4px}
+  .r-item{font-size:13px;padding:3px 0}
+  .pick-label{text-align:center;margin-top:10px;font-size:13px;color:var(--muted)}
+  .hidden{display:none}
+  .q{margin:14px 0}
+  .q label{display:block;font-weight:600;margin-bottom:8px;font-size:14px}
+  .scale{display:flex;gap:6px}
+  .scale button{padding:6px 12px;background:#eee;color:var(--ink);border-radius:8px}
+  .scale button.sel{background:var(--green);color:#fff}
+  .reveal{padding:16px;border-radius:8px;font-size:14px;margin-top:16px}
+  .reveal.ok{background:#E1F5EE;color:var(--green-d)}
+  .reveal.ko{background:#FAECE7;color:#7a2810}
+  .results{font-family:ui-monospace,monospace;font-size:12px;white-space:pre-wrap;background:#111;color:#0f0;padding:14px;border-radius:8px;max-height:300px;overflow:auto}
+  .warn{background:#FFF8EC;border:1px solid #EF9F27;border-radius:8px;padding:12px 16px;font-size:13px;color:#7a5000;margin-bottom:20px}
+  .badge{display:inline-block;background:#f0f0f0;border-radius:100px;padding:2px 10px;font-size:12px;margin:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Test Barnum à l'aveugle</h1>
+  <p class="sub">Outil d'évaluation de la validité perçue — protocole <code>docs/protocole_test_barnum.md</code></p>
+
+  <div class="warn">
+    ⚠️ Le facilitateur ne doit pas savoir quel rapport est le vrai pendant la passation. L'outil masque l'ordre (A/B tirés au sort). Ne pas commenter la lecture du participant.
+  </div>
+
+  <!-- Étape 1 : saisie -->
+  <div class="card" id="step-input">
+    <div class="card-title">1 · Coller le rapport personnalisé (JSON exporté par l'app)</div>
+    <p class="sub">Dans l'app : générer le rapport, ouvrir la console et copier <code>JSON.stringify(state.report)</code>, ou coller le contenu du rapport. Le prénom et la situation sont réutilisés dans les deux versions pour neutraliser le biais du nom propre.</p>
+    <textarea id="json-input" placeholder='{"profil":{...},"domaine":{...},"hypotheses":[...],"pistes":[...]}'></textarea>
+    <div class="row" style="margin-top:12px">
+      <div><label style="font-size:13px;color:var(--muted)">ID participant (anonyme) </label><input type="text" id="pid" placeholder="P01"></div>
+      <button id="btn-start">Lancer la comparaison à l'aveugle →</button>
+    </div>
+    <p id="input-err" style="color:var(--coral);font-size:13px;margin-top:8px"></p>
+  </div>
+
+  <!-- Étape 2 : comparaison -->
+  <div class="card hidden" id="step-compare">
+    <div class="card-title">2 · Le participant lit les deux rapports et choisit</div>
+    <div class="compare">
+      <div>
+        <div class="report" id="rep-left" onclick="choose('left')"></div>
+        <div class="pick-label">Cliquer pour choisir ce rapport</div>
+      </div>
+      <div>
+        <div class="report" id="rep-right" onclick="choose('right')"></div>
+        <div class="pick-label">Cliquer pour choisir ce rapport</div>
+      </div>
+    </div>
+
+    <div class="q" style="margin-top:20px">
+      <label>Q1 — « Lequel de ces deux rapports parle vraiment de toi ? » (cliquer le rapport ci-dessus)</label>
+      <div id="q1-state" style="font-size:14px;color:var(--muted)">Aucun choix pour l'instant.</div>
+    </div>
+    <div class="q">
+      <label>Q2 — « Qu'est-ce qui te fait dire ça ? » (retranscrire les mots du participant)</label>
+      <textarea id="q2" style="min-height:70px" placeholder="Verbatim de la justification…"></textarea>
+    </div>
+    <div class="q">
+      <label>Q3 — Justesse ressentie de CHAQUE rapport (1 = pas du tout moi, 5 = totalement moi)</label>
+      <div class="row">
+        <span style="font-size:13px;width:90px">Gauche :</span><div class="scale" id="scale-left"></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <span style="font-size:13px;width:90px">Droite :</span><div class="scale" id="scale-right"></div>
+      </div>
+    </div>
+    <button id="btn-reveal" disabled>Révéler et enregistrer</button>
+    <div id="reveal" class="reveal hidden"></div>
+  </div>
+
+  <!-- Étape 3 : résultats agrégés -->
+  <div class="card" id="step-results">
+    <div class="card-title">3 · Résultats de session (stockés localement dans ce navigateur)</div>
+    <div class="row" style="margin-bottom:12px">
+      <button class="ghost" id="btn-export">Exporter en CSV</button>
+      <button class="ghost" id="btn-json">Exporter en JSON</button>
+      <button class="ghost" id="btn-clear">Effacer la session</button>
+      <span id="agg" style="font-size:14px;color:var(--muted);align-self:center"></span>
+    </div>
+    <div class="results" id="results">—</div>
+  </div>
+</div>
+
+<script>
+const LS = 'barnum_results_v1';
+let current = null; // { pid, truth:'left'|'right', chosen, q2, q3left, q3right, real, barnum }
+
+/* ── Génération du rapport Barnum (générique, flatteur, SANS preuve spécifique) ── */
+const BARNUM = {
+  domaines: [
+    { nom: 'la création sous toutes ses formes', phrase: "Tu as besoin de donner ta touche personnelle à ce que tu fais. La routine pure, très peu pour toi." },
+    { nom: "l'action concrète", phrase: "Tu apprends mieux en faisant qu'en écoutant. Tu as besoin de voir le résultat de tes efforts." },
+    { nom: "les relations humaines", phrase: "Tu es sensible à l'ambiance et aux gens autour de toi. Ce qui compte, c'est le sens de ce que tu fais." },
+  ],
+  hypotheses: [
+    { nom: 'Apprentissage par la pratique', type: 'intérêt observé', signal: 'fort', src: "Tu retiens ce que tu expérimentes toi-même." },
+    { nom: "Besoin d'autonomie", type: 'adéquation à explorer', signal: 'moyen', src: "Tu n'aimes pas qu'on t'impose un cadre trop rigide." },
+    { nom: 'Sensibilité au sens', type: 'aptitude à vérifier', signal: 'moyen', src: "Tu as besoin de comprendre pourquoi tu fais les choses." },
+    { nom: 'Curiosité', type: 'intérêt observé', signal: 'faible', src: "Tu t'intéresses à beaucoup de sujets différents." },
+  ],
+  pistes: [
+    { emoji: '🎯', nom: 'Un métier qui a du sens pour toi', desc: "Un métier où tu peux te sentir utile et voir concrètement ce que tu apportes." },
+    { emoji: '🤝', nom: 'Un métier de contact', desc: "Un métier où tu es en lien avec les autres plutôt que seul face à un écran toute la journée." },
+    { emoji: '🛠️', nom: 'Un métier où on fabrique / réalise', desc: "Un métier où tu passes à l'action et où le résultat est visible." },
+    { emoji: '🚀', nom: 'Un métier avec des perspectives', desc: "Un métier qui peut évoluer et te laisser de la liberté à terme." },
+  ],
+  insight: "Tu as un potentiel que l'école n'a pas forcément su révéler. Le plus important, c'est de trouver un cadre qui te correspond vraiment — et il existe.",
+};
+
+function pick(arr, seed){ return arr[seed % arr.length]; }
+
+function buildBarnum(real){
+  // Réutilise l'identité pour neutraliser le biais du nom propre
+  const seed = (real?.profil?.type || '').length + (real?.domaine?.principal?.nom || '').length;
+  return {
+    _barnum: true,
+    profil: { type: real?.profil?.type || 'Ton profil', headline_jeune: pick(BARNUM.domaines, seed).phrase },
+    domaine: {
+      principal: {
+        nom: pick(BARNUM.domaines, seed).nom,
+        signal: 'moyen',
+        phrase_jeune: pick(BARNUM.domaines, seed+1).phrase,
+        preuves: [] // volontairement AUCUNE preuve spécifique
+      },
+      secondaires: []
+    },
+    hypotheses: BARNUM.hypotheses,
+    pistes: BARNUM.pistes.map(p => ({ emoji:p.emoji, nom:p.nom, signal:'moyen', description_jeune:p.desc, fenetre:false })),
+    insight: { texte_jeune: BARNUM.insight }
+  };
+}
+
+/* ── Rendu d'un rapport (vrai ou barnum) au même gabarit ── */
+function renderReport(d){
+  const dom = d.domaine?.principal || {};
+  const preuves = (dom.preuves||[]).map(p=>`<div class="r-item">📊 ${esc(p)}</div>`).join('');
+  const hyps = (d.hypotheses||[]).map(h=>`<div class="r-item">• <strong style="display:inline;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink)">${esc(h.nom)}</strong> <span class="badge">${esc(h.signal||'')}</span></div>`).join('');
+  const pistes = (d.pistes||[]).map(p=>`<div class="r-item">${p.emoji||'•'} ${esc(p.nom)}${p.fenetre?' <span class="badge" style="background:#EEEDFE;color:#3f3894">fenêtre</span>':''}</div>`).join('');
+  return `
+    <h2>Rapport d'orientation</h2>
+    <div class="r-domaine">${esc(dom.nom||'—')}</div>
+    ${dom.phrase_jeune?`<div class="r-phrase">${esc(dom.phrase_jeune)}</div>`:''}
+    ${preuves?`<div class="r-block"><strong>Ce qu'on observe</strong>${preuves}</div>`:''}
+    <div class="r-block"><strong>Hypothèses</strong>${hyps||'—'}</div>
+    <div class="r-block"><strong>Pistes</strong>${pistes||'—'}</div>
+    ${d.insight?.texte_jeune?`<div class="r-block"><strong>Insight</strong><div class="r-item" style="font-style:italic">${esc(d.insight.texte_jeune)}</div></div>`:''}`;
+}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+/* ── Randomisation sans Math.random biaisé : basé sur le contenu + horodatage saisi ── */
+function coinFlip(pid){
+  let h=0; const s=pid+':'+Date.now();
+  for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0;}
+  return (h & 1) ? 'left' : 'right'; // position du VRAI rapport
+}
+
+document.getElementById('btn-start').onclick = () => {
+  const err = document.getElementById('input-err'); err.textContent='';
+  let real;
+  try { real = JSON.parse(document.getElementById('json-input').value); }
+  catch { err.textContent = 'JSON invalide.'; return; }
+  const pid = document.getElementById('pid').value.trim() || ('P'+(loadResults().length+1));
+  const barnum = buildBarnum(real);
+  const truth = coinFlip(pid); // où est le vrai
+  current = { pid, truth, chosen:null, q2:'', q3left:null, q3right:null, real, barnum };
+
+  document.getElementById('rep-left').innerHTML  = renderReport(truth==='left'?real:barnum);
+  document.getElementById('rep-right').innerHTML = renderReport(truth==='right'?real:barnum);
+  document.getElementById('step-input').classList.add('hidden');
+  document.getElementById('step-compare').classList.remove('hidden');
+  buildScales();
+  updateRevealBtn();
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+
+function choose(side){
+  if(!current) return;
+  current.chosen = side;
+  document.getElementById('rep-left').classList.toggle('chosen', side==='left');
+  document.getElementById('rep-right').classList.toggle('chosen', side==='right');
+  document.getElementById('q1-state').textContent = 'Choix enregistré : rapport ' + (side==='left'?'de gauche':'de droite') + '.';
+  updateRevealBtn();
+}
+
+function buildScales(){
+  ['left','right'].forEach(side=>{
+    const box = document.getElementById('scale-'+side); box.innerHTML='';
+    for(let i=1;i<=5;i++){
+      const b=document.createElement('button'); b.textContent=i;
+      b.onclick=()=>{ current['q3'+side]=i; [...box.children].forEach(c=>c.classList.remove('sel')); b.classList.add('sel'); updateRevealBtn(); };
+      box.appendChild(b);
+    }
+  });
+}
+function updateRevealBtn(){
+  document.getElementById('btn-reveal').disabled = !(current && current.chosen && current.q3left && current.q3right);
+}
+
+document.getElementById('btn-reveal').onclick = () => {
+  current.q2 = document.getElementById('q2').value.trim();
+  const correct = current.chosen === current.truth;
+  const rec = {
+    pid: current.pid,
+    correct,
+    chosen_real: correct,
+    q3_real:   current.truth==='left'? current.q3left : current.q3right,
+    q3_barnum: current.truth==='left'? current.q3right: current.q3left,
+    justification: current.q2,
+    ts: new Date().toISOString(),
+  };
+  const all = loadResults(); all.push(rec); localStorage.setItem(LS, JSON.stringify(all));
+
+  const rv = document.getElementById('reveal');
+  rv.className = 'reveal ' + (correct?'ok':'ko');
+  rv.innerHTML = (correct
+    ? '✓ Le participant a identifié son <strong>vrai</strong> rapport.'
+    : '✗ Le participant a choisi le rapport <strong>Barnum</strong> (générique).')
+    + ` Justesse ressentie — vrai : ${rec.q3_real}/5 · Barnum : ${rec.q3_barnum}/5.`
+    + (rec.q3_barnum>=4 ? '<br><em>Note : le rapport générique a aussi été jugé « juste » — illustration directe de l\'effet Barnum.</em>' : '');
+  rv.classList.remove('hidden');
+  document.getElementById('btn-reveal').disabled = true;
+  renderResults();
+  setTimeout(()=>{ // prêt pour le participant suivant
+    document.getElementById('step-compare').classList.add('hidden');
+    document.getElementById('step-input').classList.remove('hidden');
+    document.getElementById('json-input').value=''; document.getElementById('pid').value='';
+    document.getElementById('q2').value=''; rv.classList.add('hidden');
+    document.getElementById('rep-left').classList.remove('chosen'); document.getElementById('rep-right').classList.remove('chosen');
+    document.getElementById('q1-state').textContent='Aucun choix pour l\'instant.';
+  }, 4000);
+};
+
+function loadResults(){ try { return JSON.parse(localStorage.getItem(LS)||'[]'); } catch { return []; } }
+function renderResults(){
+  const all = loadResults();
+  const n = all.length, ok = all.filter(r=>r.correct).length;
+  const avgReal = n? (all.reduce((s,r)=>s+(r.q3_real||0),0)/n).toFixed(2):'—';
+  const avgBar  = n? (all.reduce((s,r)=>s+(r.q3_barnum||0),0)/n).toFixed(2):'—';
+  document.getElementById('agg').textContent = n? `${ok}/${n} identifications correctes (${Math.round(100*ok/n)}%) · justesse ressentie vrai ${avgReal} vs Barnum ${avgBar}` : 'Aucun résultat.';
+  document.getElementById('results').textContent = n? all.map(r=>`${r.pid}\t${r.correct?'OK ':'BARNUM'}\tvrai=${r.q3_real} barnum=${r.q3_barnum}\t${(r.justification||'').slice(0,60)}`).join('\n') : '—';
+}
+document.getElementById('btn-export').onclick = () => {
+  const all = loadResults(); if(!all.length) return;
+  const head = 'pid,correct,q3_real,q3_barnum,justification,ts\n';
+  const body = all.map(r=>[r.pid, r.correct?1:0, r.q3_real, r.q3_barnum, '"'+(r.justification||'').replace(/"/g,'""')+'"', r.ts].join(',')).join('\n');
+  download('test-barnum.csv', head+body, 'text/csv');
+};
+document.getElementById('btn-json').onclick = () => { const all=loadResults(); if(all.length) download('test-barnum.json', JSON.stringify(all,null,2), 'application/json'); };
+document.getElementById('btn-clear').onclick = () => { if(confirm('Effacer tous les résultats de cette session ?')){ localStorage.removeItem(LS); renderResults(); } };
+function download(name, content, type){
+  const b=new Blob([content],{type}); const u=URL.createObjectURL(b); const a=document.createElement('a');
+  a.href=u; a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(u),4000);
+}
+renderResults();
+</script>
+</body>
+</html>

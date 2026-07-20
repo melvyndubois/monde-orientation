@@ -1,0 +1,80 @@
+{
+  "meta": {
+    "source": "TikTok Data Export (simulated for FindYourself demo)",
+    "date": "2026-05-19",
+    "username": "tony_demo",
+    "note": "Données simulées à des fins de démonstration. Ne représente pas un vrai utilisateur."
+  },
+  "Activity": {
+    "VideoHistory": [
+      { "VideoLink": "https://tiktok.com/@meca_pro/video/1",           "Date": "2026-05-15" },
+      { "VideoLink": "https://tiktok.com/@diy_wood_builds/video/2",    "Date": "2026-05-14" },
+      { "VideoLink": "https://tiktok.com/@design_graphique_fr/video/3","Date": "2026-05-13" },
+      { "VideoLink": "https://tiktok.com/@entrepreneur_fr/video/4",    "Date": "2026-05-12" },
+      { "VideoLink": "https://tiktok.com/@streetart_world/video/5",    "Date": "2026-05-11" },
+      { "VideoLink": "https://tiktok.com/@gaming_strategy/video/6",    "Date": "2026-05-10" },
+      { "VideoLink": "https://tiktok.com/@chef_cuisine_pro/video/7",   "Date": "2026-05-09" },
+      { "VideoLink": "https://tiktok.com/@carrosserie_bro/video/8",    "Date": "2026-05-08" },
+      { "VideoLink": "https://tiktok.com/@diy_electronics/video/9",    "Date": "2026-05-07" },
+      { "VideoLink": "https://tiktok.com/@design_3d_france/video/10",  "Date": "2026-05-06" },
+      { "VideoLink": "https://tiktok.com/@meca_pro/video/11",          "Date": "2026-05-05" },
+      { "VideoLink": "https://tiktok.com/@street_food_paris/video/12", "Date": "2026-05-04" },
+      { "VideoLink": "https://tiktok.com/@indie_game_dev/video/13",    "Date": "2026-05-03" },
+      { "VideoLink": "https://tiktok.com/@entrepreneur_fr/video/14",   "Date": "2026-05-02" },
+      { "VideoLink": "https://tiktok.com/@graffiti_legal/video/15",    "Date": "2026-05-01" }
+    ],
+    "SearchHistory": [
+      { "SearchTerm": "comment créer une app",             "Date": "2026-05-16" },
+      { "SearchTerm": "CAP carrosserie salaire",           "Date": "2026-05-14" },
+      { "SearchTerm": "formations courtes bien payées",    "Date": "2026-05-12" },
+      { "SearchTerm": "recette barbecue américain",        "Date": "2026-05-10" },
+      { "SearchTerm": "comment apprendre design graphique","Date": "2026-05-09" },
+      { "SearchTerm": "BTS design graphique débouchés",    "Date": "2026-05-08" },
+      { "SearchTerm": "salaire game designer france",      "Date": "2026-05-07" },
+      { "SearchTerm": "auto-entrepreneur jeune mineur",    "Date": "2026-05-06" },
+      { "SearchTerm": "créer son logo gratuitement",       "Date": "2026-05-05" },
+      { "SearchTerm": "tuto soudure débutant",             "Date": "2026-05-04" },
+      { "SearchTerm": "gainage foot technique",            "Date": "2026-05-03" },
+      { "SearchTerm": "cuisine japonaise recette facile",  "Date": "2026-05-02" }
+    ],
+    "FavoriteVideoList": {
+      "FavoriteVideoList": [
+        { "Link": "https://tiktok.com/@entrepreneur_fr/video/fav1"  },
+        { "Link": "https://tiktok.com/@streetart_world/video/fav2"  },
+        { "Link": "https://tiktok.com/@meca_pro/video/fav3"         },
+        { "Link": "https://tiktok.com/@design_graphique_fr/video/fav4" },
+        { "Link": "https://tiktok.com/@indie_game_dev/video/fav5"   }
+      ]
+    },
+    "FollowingList": {
+      "Following": [
+        { "UserName": "meca_pro_france"      },
+        { "UserName": "diy_woodworking"      },
+        { "UserName": "graphic_design_tips"  },
+        { "UserName": "gaming_strategy_fr"   },
+        { "UserName": "chef_cuisine_pro"     },
+        { "UserName": "entrepreneur_mindset" },
+        { "UserName": "street_art_paris"     },
+        { "UserName": "indie_game_dev_fr"    },
+        { "UserName": "carrosserie_pro"      },
+        { "UserName": "design_3d_blender"    },
+        { "UserName": "startup_france"       },
+        { "UserName": "street_food_recettes" }
+      ]
+    },
+    "LikeList": {
+      "ItemFavoriteList": [
+        { "Link": "https://tiktok.com/@design_graphique_fr/video/like1" },
+        { "Link": "https://tiktok.com/@meca_pro/video/like2"            },
+        { "Link": "https://tiktok.com/@entrepreneur_fr/video/like3"     }
+      ]
+    }
+  },
+  "Profile": {
+    "ProfileMap": {
+      "userName": "tony_demo",
+      "bio": "16 ans • foot • gaming • je construis des trucs",
+      "Region": "France"
+    }
+  }
+}

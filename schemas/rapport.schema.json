@@ -1,0 +1,208 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://monde.app/schemas/rapport/v2.json",
+  "title": "Rapport d'orientation Monde. (schéma v2 — sans scores chiffrés)",
+  "description": "Sortie JSON du moteur d'analyse. Version 2 : les scores numériques et pourcentages sont INTERDITS. Les niveaux sont qualitatifs (fort|moyen|faible), toujours justifiés par une preuve.",
+  "version": "2.0.0",
+  "type": "object",
+  "required": ["meta", "profil", "domaine", "hypotheses", "pistes", "conseiller"],
+  "definitions": {
+    "signal": { "type": "string", "enum": ["fort", "moyen", "faible"] },
+    "couleur": { "type": "string", "enum": ["green", "purple", "amber", "coral"] }
+  },
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["niveau_certitude", "source_principale"],
+      "properties": {
+        "niveau_certitude": { "type": "string", "enum": ["élevé", "moyen", "faible"] },
+        "source_principale": { "type": "string", "enum": ["comportemental", "déclaratif", "mixte"] },
+        "homogeneite_feed": { "type": "string", "enum": ["élevée", "moyenne", "faible", "non évaluable"] },
+        "cas_sensible_detecte": { "type": "boolean" },
+        "type_cas_sensible": { "type": ["string", "null"] },
+        "note_methodologique": { "type": "string", "description": "Doit mentionner la limite du biais algorithmique du feed." }
+      }
+    },
+    "profil": {
+      "type": "object",
+      "required": ["type", "headline_jeune"],
+      "properties": {
+        "type": { "type": "string" },
+        "headline_jeune": { "type": "string" },
+        "headline_rapport": { "type": "string" },
+        "couleur_dominante": { "$ref": "#/definitions/couleur" }
+      }
+    },
+    "domaine": {
+      "type": "object",
+      "required": ["principal"],
+      "properties": {
+        "principal": {
+          "type": "object",
+          "required": ["nom", "signal", "preuves"],
+          "properties": {
+            "nom": { "type": "string", "description": "Domaine précis dans le vocabulaire exact de la personne." },
+            "univers": { "type": "string", "description": "Univers du référentiel (usage conseiller)." },
+            "signal": { "$ref": "#/definitions/signal" },
+            "phrase_jeune": { "type": "string" },
+            "preuves": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+          }
+        },
+        "secondaires": {
+          "type": "array",
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "required": ["nom", "signal"],
+            "properties": {
+              "nom": { "type": "string" },
+              "signal": { "$ref": "#/definitions/signal" },
+              "preuves": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "facettes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["verbe", "signal"],
+        "properties": {
+          "verbe": { "type": "string" },
+          "riasec": { "type": "string" },
+          "signal": { "$ref": "#/definitions/signal" },
+          "preuve": { "type": "string" }
+        }
+      }
+    },
+    "riasec": {
+      "type": "object",
+      "properties": {
+        "dominantes": { "type": "array", "items": { "type": "string", "enum": ["R", "I", "A", "S", "E", "C"] } },
+        "lecture_conseiller": { "type": "string" }
+      }
+    },
+    "interets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string" },
+          "intensite": { "type": "string", "enum": ["forte", "moyenne", "faible"] },
+          "taille": { "type": "string", "enum": ["lg", "md", "sm"] },
+          "couleur": { "$ref": "#/definitions/couleur" },
+          "source": { "type": "string", "enum": ["comportemental", "déclaratif", "inféré"] }
+        }
+      }
+    },
+    "hypotheses": {
+      "type": "array",
+      "description": "Remplace les anciens 'traits' chiffrés. Chaque hypothèse a un type et un signal, jamais de valeur numérique.",
+      "items": {
+        "type": "object",
+        "required": ["nom", "type", "signal"],
+        "properties": {
+          "nom": { "type": "string" },
+          "type": { "type": "string", "enum": ["intérêt observé", "aptitude à vérifier", "adéquation à explorer"] },
+          "signal": { "$ref": "#/definitions/signal" },
+          "couleur": { "$ref": "#/definitions/couleur" },
+          "signal_source": { "type": "string" },
+          "question_conversation": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "insight": {
+      "type": "object",
+      "properties": {
+        "texte_jeune": { "type": "string" },
+        "texte_conseiller": { "type": "string" },
+        "question_conversation": { "type": "string" }
+      }
+    },
+    "pistes": {
+      "type": "array",
+      "description": "Portes d'entrée (remplace 'metiers'). Exactement 4 recommandées, dont >=1 'fenetre':true.",
+      "items": {
+        "type": "object",
+        "required": ["nom", "signal", "description_jeune"],
+        "properties": {
+          "emoji": { "type": "string" },
+          "nom": { "type": "string" },
+          "signal": { "$ref": "#/definitions/signal" },
+          "connu_du_jeune": { "type": "boolean" },
+          "fenetre": { "type": "boolean", "description": "Métier absent du feed, proposé pour contrer la bulle (GF2)." },
+          "pourquoi_fenetre": { "type": ["string", "null"] },
+          "description_jeune": { "type": "string" },
+          "pourquoi_toi": { "type": "string" },
+          "voies_acces": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["formation"],
+              "properties": {
+                "formation": { "type": "string" },
+                "duree": { "type": "string" },
+                "niveau_requis": { "type": "string" },
+                "type": { "type": "string", "enum": ["classique", "alternance", "apprentissage", "formation continue"] },
+                "eligible_cpf": { "type": "boolean" },
+                "salaire_indicatif": { "type": ["string", "null"], "description": "Fourchette indicative à vérifier sur MétierScope. Jamais présentée comme certaine." }
+              }
+            }
+          },
+          "tension_marche": { "type": "string", "enum": ["forte", "correcte", "faible"] },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "top": { "type": "boolean" },
+          "question_conversation": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "environnements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "emoji": { "type": "string" },
+          "titre": { "type": "string" },
+          "sous": { "type": "string" },
+          "signal_source": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "conseiller": {
+      "type": "object",
+      "required": ["lecture_globale"],
+      "properties": {
+        "lecture_globale": { "type": "string" },
+        "angles_morts": { "type": "string", "description": "GF2 : ce qui est absent du feed et mérite exploration." },
+        "inferences_risquees": { "type": "array", "items": { "type": "string" }, "description": "GF5 : inférences fragiles signalées au professionnel." },
+        "points_attention": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string", "enum": ["decrochage", "anxiete", "autre"] },
+              "signal": { "type": "string" },
+              "interpretation": { "type": "string" },
+              "action_recommandee": { "type": "string" }
+            }
+          }
+        },
+        "questions_a_poser": { "type": "array", "items": { "type": "string" } },
+        "a_ne_pas_faire": { "type": "array", "items": { "type": "string" } },
+        "conseil_actionnable": { "type": "string" },
+        "ressources_suggerer": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "nom": { "type": "string" },
+              "type": { "type": "string" },
+              "url_type": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

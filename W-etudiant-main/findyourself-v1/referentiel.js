@@ -1,0 +1,1395 @@
+/* ═══════════════════════════════════════════════════════════════
+   RÉFÉRENTIEL DOMAINES / MÉTIERS — v1.1
+   Généré depuis Data/referentiel_domaines_metiers_v1-1.json
+   NE PAS ÉDITER À LA MAIN : modifier le JSON source dans Data/
+   puis régénérer ce fichier (window.REFERENTIEL = <contenu du JSON>).
+   ═══════════════════════════════════════════════════════════════ */
+window.REFERENTIEL = {
+  "meta": {
+    "nom": "Référentiel domaines/métiers",
+    "version": "1.1",
+    "date": "2026-07",
+    "description": "Base de connaissance du moteur d'analyse : domaine avant métier, granularité de reconnaissance, croisement domaine x facettes x situation de formation.",
+    "sources": [
+      {
+        "nom": "ROME 4.0",
+        "editeur": "France Travail",
+        "url": "https://www.data.gouv.fr/datasets/repertoire-operationnel-des-metiers-et-des-emplois-rome"
+      },
+      {
+        "nom": "MétierScope",
+        "editeur": "France Travail",
+        "url": "https://candidat.francetravail.fr/metierscope/",
+        "usage": "salaires et tension marché à récupérer à la volée, ne pas figer"
+      },
+      {
+        "nom": "ONISEP",
+        "url": "https://www.onisep.fr"
+      },
+      {
+        "nom": "France Compétences / RNCP",
+        "url": "https://www.francecompetences.fr",
+        "usage": "éligibilité CPF pour le parcours adultes"
+      },
+      {
+        "nom": "CIDJ",
+        "url": "https://www.cidj.com"
+      }
+    ],
+    "maintenance": {
+      "frequence_revue": "2 fois par an (rythme de mise à jour du ROME)",
+      "regles": [
+        "Tout nouveau domaine récurrent dans les données bénéficiaires est ajouté au niveau domaines_precis avec mapping ROME",
+        "Voies de formation vérifiées annuellement",
+        "Chaque porte d'entrée pointe vers une fiche ROME vérifiée via MétierScope avant production"
+      ]
+    }
+  },
+  "regles_moteur": [
+    "Toujours descendre au niveau du domaine précis ; le macro-univers n'est jamais affiché comme résultat principal",
+    "Un domaine principal + 1-2 secondaires maximum, avec pourcentage de match et preuves comportementales",
+    "Croiser domaine x facettes x situation de formation pour sélectionner 4 portes d'entrée : au moins une accessible immédiatement, au moins une niche (effet découverte), au moins une entrepreneuriale si facette Entreprendre détectée",
+    "Proposer systématiquement la porte farfelue de l'univers si elle croise les facettes détectées",
+    "Chercher les croisements inter-univers (ex : moto + graphisme = customisateur)",
+    "La situation de formation adapte les voies, jamais l'ambition",
+    "Salaires et tension marché récupérés à la volée via MétierScope, jamais figés"
+  ],
+  "situations_formation": [
+    {
+      "id": "college",
+      "label": "Collège"
+    },
+    {
+      "id": "segpa",
+      "label": "SEGPA"
+    },
+    {
+      "id": "lycee_general",
+      "label": "Lycée général",
+      "precision_attendue": "spécialités"
+    },
+    {
+      "id": "lycee_techno",
+      "label": "Lycée technologique",
+      "precision_attendue": "filière (STI2D, STMG, ST2S...)"
+    },
+    {
+      "id": "bac_pro",
+      "label": "Bac professionnel",
+      "precision_attendue": "secteur"
+    },
+    {
+      "id": "cap",
+      "label": "CAP",
+      "precision_attendue": "secteur"
+    },
+    {
+      "id": "etudes_sup",
+      "label": "Études supérieures",
+      "precision_attendue": "filière"
+    },
+    {
+      "id": "adulte_en_poste",
+      "label": "Adulte en poste (reconversion)",
+      "parcours": "adulte",
+      "levier_financement": "CPF"
+    },
+    {
+      "id": "adulte_recherche",
+      "label": "Adulte en recherche d'emploi",
+      "parcours": "adulte",
+      "levier_financement": "CPF / France Travail"
+    }
+  ],
+  "facettes": [
+    {
+      "id": "reparer",
+      "verbe": "Réparer",
+      "description": "Diagnostiquer, remettre en état, entretenir",
+      "riasec": [
+        "R",
+        "I"
+      ]
+    },
+    {
+      "id": "fabriquer",
+      "verbe": "Fabriquer",
+      "description": "Produire de ses mains, construire, assembler",
+      "riasec": [
+        "R"
+      ]
+    },
+    {
+      "id": "creer_concevoir",
+      "verbe": "Créer / Concevoir",
+      "description": "Imaginer, dessiner, inventer du neuf",
+      "riasec": [
+        "A",
+        "I"
+      ]
+    },
+    {
+      "id": "personnaliser",
+      "verbe": "Personnaliser",
+      "description": "Transformer, customiser, styliser",
+      "riasec": [
+        "A",
+        "R"
+      ]
+    },
+    {
+      "id": "comprendre_explorer",
+      "verbe": "Comprendre / Explorer",
+      "description": "Analyser, chercher, expérimenter",
+      "riasec": [
+        "I"
+      ]
+    },
+    {
+      "id": "soigner_aider",
+      "verbe": "Soigner / Aider",
+      "description": "Prendre soin, accompagner, réparer l'humain",
+      "riasec": [
+        "S"
+      ]
+    },
+    {
+      "id": "transmettre",
+      "verbe": "Transmettre",
+      "description": "Enseigner, expliquer, former, créer du contenu pédagogique",
+      "riasec": [
+        "S",
+        "A"
+      ]
+    },
+    {
+      "id": "vendre_convaincre",
+      "verbe": "Vendre / Convaincre",
+      "description": "Négocier, commercialiser, persuader",
+      "riasec": [
+        "E"
+      ]
+    },
+    {
+      "id": "entreprendre",
+      "verbe": "Entreprendre",
+      "description": "Monter son affaire, diriger, prendre des risques",
+      "riasec": [
+        "E"
+      ]
+    },
+    {
+      "id": "organiser",
+      "verbe": "Organiser",
+      "description": "Planifier, gérer, structurer, logistique",
+      "riasec": [
+        "C",
+        "E"
+      ]
+    },
+    {
+      "id": "proteger",
+      "verbe": "Protéger",
+      "description": "Sécuriser, défendre, secourir",
+      "riasec": [
+        "R",
+        "S"
+      ]
+    },
+    {
+      "id": "raconter",
+      "verbe": "Raconter",
+      "description": "Écrire, filmer, documenter, mettre en récit",
+      "riasec": [
+        "A"
+      ]
+    },
+    {
+      "id": "performer",
+      "verbe": "Performer",
+      "description": "Se dépasser, compétitionner, se produire",
+      "riasec": [
+        "E",
+        "A"
+      ]
+    },
+    {
+      "id": "cultiver_elever",
+      "verbe": "Cultiver / Élever",
+      "description": "Faire grandir le vivant (plantes, animaux)",
+      "riasec": [
+        "R"
+      ]
+    }
+  ],
+  "univers": [
+    {
+      "id": 1,
+      "nom": "VÉHICULES & MÉCANIQUE",
+      "rome_familles": [
+        "I",
+        "N",
+        "D"
+      ],
+      "riasec_dominant": [
+        "R"
+      ],
+      "domaines_precis": [
+        {
+          "label": "la voiture / le tuning / la restauration d'anciennes"
+        },
+        {
+          "label": "la moto"
+        },
+        {
+          "label": "le vélo"
+        },
+        {
+          "label": "le poids lourd / le camion"
+        },
+        {
+          "label": "les engins agricoles et de chantier"
+        },
+        {
+          "label": "le nautisme / les bateaux"
+        },
+        {
+          "label": "l'aéronautique / les avions"
+        },
+        {
+          "label": "le sport automobile / le karting"
+        },
+        {
+          "label": "la conduite (routier, VTC, livraison)"
+        }
+      ],
+      "portes_entree": [
+        {
+          "metier": "Mécanicien auto / préparateur",
+          "voie_acces": "CAP MV → Bac Pro MV → MC préparation"
+        },
+        {
+          "metier": "Carrossier-peintre / customisateur",
+          "voie_acces": "CAP Carrosserie, Bac Pro RC"
+        },
+        {
+          "metier": "Mécanicien moto",
+          "voie_acces": "CAP MV option motocycles"
+        },
+        {
+          "metier": "Technicien cycle",
+          "voie_acces": "CQP / TFP mécanicien cycle"
+        },
+        {
+          "metier": "Mécanicien engins TP / agricole",
+          "voie_acces": "Bac Pro MMEI, BTS TSMA"
+        },
+        {
+          "metier": "Mécanicien marine / nautisme",
+          "voie_acces": "CAP Maintenance nautique"
+        },
+        {
+          "metier": "Technicien aéronautique",
+          "voie_acces": "Bac Pro Aéronautique, MC, BTS Aéro"
+        },
+        {
+          "metier": "Conducteur routier",
+          "voie_acces": "Titre pro conducteur, FIMO"
+        },
+        {
+          "metier": "Vendeur / négociant automobile",
+          "voie_acces": "Bac Pro Commerce + spéc., BTS NDRC"
+        },
+        {
+          "metier": "Gérant de garage",
+          "voie_acces": "Bac Pro + Brevet de Maîtrise, BTS après-vente"
+        }
+      ],
+      "porte_farfelue": {
+        "metier": "Préparateur de véhicules de cascade et de cinéma",
+        "description": "modifier des voitures pour les tournages (rampes cachées, arceaux, commandes déportées).",
+        "voie_acces": "CAP/Bac Pro MV + expérience préparation + réseau production audiovisuelle"
+      }
+    },
+    {
+      "id": 2,
+      "nom": "CONSTRUCTION & AMÉNAGEMENT",
+      "rome_familles": [
+        "F",
+        "B"
+      ],
+      "riasec_dominant": [
+        "R"
+      ],
+      "domaines_precis": [
+        {
+          "label": "le bois / la menuiserie"
+        },
+        {
+          "label": "le métal / la soudure / la ferronnerie"
+        },
+        {
+          "label": "l'électricité"
+        },
+        {
+          "label": "la plomberie / le chauffage"
+        },
+        {
+          "label": "la maçonnerie / le gros œuvre"
+        },
+        {
+          "label": "la peinture / la déco intérieure"
+        },
+        {
+          "label": "la charpente / la couverture"
+        },
+        {
+          "label": "la domotique / la maison connectée"
+        },
+        {
+          "label": "les tiny houses / l'habitat alternatif"
+        },
+        {
+          "label": "les travaux paysagers",
+          "renvoi": "voir aussi Univers 8"
+        }
+      ],
+      "portes_entree": [
+        {
+          "metier": "Menuisier / agenceur",
+          "voie_acces": "CAP Menuisier, Bac Pro TMA"
+        },
+        {
+          "metier": "Ébéniste",
+          "voie_acces": "CAP Ébéniste, BMA"
+        },
+        {
+          "metier": "Soudeur / métallier",
+          "voie_acces": "CAP MIS, Bac Pro TCI"
+        },
+        {
+          "metier": "Électricien",
+          "voie_acces": "CAP Électricien, Bac Pro MELEC"
+        },
+        {
+          "metier": "Plombier-chauffagiste",
+          "voie_acces": "CAP MIS, Bac Pro TISEC"
+        },
+        {
+          "metier": "Maçon",
+          "voie_acces": "CAP Maçon, Bac Pro TB ORGO"
+        },
+        {
+          "metier": "Peintre décorateur",
+          "voie_acces": "CAP Peintre, BP"
+        },
+        {
+          "metier": "Charpentier",
+          "voie_acces": "CAP Charpentier, BP"
+        },
+        {
+          "metier": "Conducteur de travaux",
+          "voie_acces": "BTS Bâtiment, BUT GC"
+        },
+        {
+          "metier": "Architecte d'intérieur / dessinateur",
+          "voie_acces": "BTS ERA, écoles spé, DN MADE"
+        }
+      ],
+      "porte_farfelue": {
+        "metier": "Constructeur de cabanes perchées et d'habitats insolites",
+        "description": "bulles, yourtes, tiny houses, cabanes dans les arbres pour l'hôtellerie de plein air, un marché en plein boom.",
+        "voie_acces": "CAP Charpente/Menuiserie + spécialisation auprès d'un constructeur du secteur"
+      }
+    },
+    {
+      "id": 3,
+      "nom": "CUISINE & ALIMENTATION",
+      "rome_familles": [
+        "G",
+        "D",
+        "A"
+      ],
+      "riasec_dominant": [
+        "R",
+        "A",
+        "E"
+      ],
+      "domaines_precis": [
+        {
+          "label": "la pâtisserie"
+        },
+        {
+          "label": "la boulangerie"
+        },
+        {
+          "label": "la cuisine / la gastronomie"
+        },
+        {
+          "label": "la viande / la boucherie / le barbecue"
+        },
+        {
+          "label": "le vin / la sommellerie"
+        },
+        {
+          "label": "le bar / la mixologie"
+        },
+        {
+          "label": "le café / le barista"
+        },
+        {
+          "label": "le chocolat / la confiserie"
+        },
+        {
+          "label": "la street food / le food truck"
+        },
+        {
+          "label": "le fromage"
+        },
+        {
+          "label": "la nutrition / le healthy"
+        }
+      ],
+      "portes_entree": [
+        {
+          "metier": "Pâtissier",
+          "voie_acces": "CAP Pâtissier, MC, BTM"
+        },
+        {
+          "metier": "Boulanger",
+          "voie_acces": "CAP Boulanger, BP"
+        },
+        {
+          "metier": "Cuisinier",
+          "voie_acces": "CAP Cuisine, Bac Pro Cuisine"
+        },
+        {
+          "metier": "Boucher / charcutier-traiteur",
+          "voie_acces": "CAP Boucher, BP"
+        },
+        {
+          "metier": "Sommelier",
+          "voie_acces": "MC Sommellerie, BP"
+        },
+        {
+          "metier": "Barman / mixologue",
+          "voie_acces": "CAP CSHCR, MC Bar"
+        },
+        {
+          "metier": "Chocolatier-confiseur",
+          "voie_acces": "CAP Chocolatier, BTM"
+        },
+        {
+          "metier": "Fromager",
+          "voie_acces": "CAP Crémier-fromager"
+        },
+        {
+          "metier": "Gérant de restaurant / food truck",
+          "voie_acces": "Bac Pro + expérience, BTS MHR"
+        },
+        {
+          "metier": "Diététicien",
+          "voie_acces": "BTS Diététique, BUT Génie biologique"
+        }
+      ],
+      "porte_farfelue": {
+        "metier": "Styliste culinaire",
+        "description": "préparer et mettre en scène les plats pour la photo, la pub et le cinéma (le burger parfait des affiches, c'est un métier).",
+        "voie_acces": "CAP Cuisine + formation photo/stylisme + book"
+      }
+    },
+    {
+      "id": 4,
+      "nom": "IMAGE & CRÉATION VISUELLE",
+      "rome_familles": [
+        "E",
+        "B",
+        "L"
+      ],
+      "riasec_dominant": [
+        "A"
+      ],
+      "domaines_precis": [
+        {
+          "label": "le graphisme / le design"
+        },
+        {
+          "label": "le dessin / l'illustration / le manga"
+        },
+        {
+          "label": "le tatouage"
+        },
+        {
+          "label": "la photo"
+        },
+        {
+          "label": "la vidéo / le montage"
+        },
+        {
+          "label": "l'animation / la 3D"
+        },
+        {
+          "label": "la mode / la couture / le stylisme"
+        },
+        {
+          "label": "le design d'objet / le produit"
+        },
+        {
+          "label": "la sérigraphie / le print"
+        },
+        {
+          "label": "l'architecture"
+        }
+      ],
+      "portes_entree": [
+        {
+          "metier": "Graphiste / designer graphique",
+          "voie_acces": "Bac Pro AMA, DN MADE, BUT MMI"
+        },
+        {
+          "metier": "Illustrateur / dessinateur",
+          "voie_acces": "DN MADE, écoles d'art, autodidacte + book"
+        },
+        {
+          "metier": "Tatoueur",
+          "voie_acces": "Formation hygiène + apprentissage en salon"
+        },
+        {
+          "metier": "Photographe",
+          "voie_acces": "Bac Pro Photo, BTS Photographie"
+        },
+        {
+          "metier": "Monteur vidéo / cadreur",
+          "voie_acces": "BTS Audiovisuel, BUT MMI"
+        },
+        {
+          "metier": "Animateur 2D/3D",
+          "voie_acces": "Écoles spé (Gobelins, etc.), DN MADE"
+        },
+        {
+          "metier": "Couturier / styliste-modéliste",
+          "voie_acces": "CAP MMVF, Bac Pro MMV, DN MADE Mode"
+        },
+        {
+          "metier": "Designer produit",
+          "voie_acces": "DN MADE, écoles de design"
+        },
+        {
+          "metier": "Maquettiste / opérateur PAO",
+          "voie_acces": "Bac Pro RPIP"
+        }
+      ],
+      "porte_farfelue": {
+        "metier": "Prothésiste-maquilleur d'effets spéciaux (SFX)",
+        "description": "sculpter blessures, monstres et vieillissements pour le cinéma et les séries.",
+        "voie_acces": "CAP Esthétique ou écoles d'art + formations SFX spécialisées + book"
+      }
+    },
+    {
+      "id": 5,
+      "nom": "NUMÉRIQUE & JEU VIDÉO",
+      "rome_familles": [
+        "M",
+        "E"
+      ],
+      "riasec_dominant": [
+        "I",
+        "A"
+      ],
+      "domaines_precis": [
+        {
+          "label": "le code / le développement"
+        },
+        {
+          "label": "le gaming / l'esport"
+        },
+        {
+          "label": "la création de jeux vidéo"
+        },
+        {
+          "label": "la cybersécurité / le hacking éthique"
+        },
+        {
+          "label": "l'IA / la data"
+        },
+        {
+          "label": "le streaming / la création de contenu"
+        },
+        {
+          "label": "le hardware / le PC building"
+        },
+        {
+          "label": "les réseaux / l'infra"
+        },
+        {
+          "label": "la robotique",
+          "renvoi": "voir aussi Univers 14"
+        }
+      ],
+      "portes_entree": [
+        {
+          "metier": "Développeur web / logiciel",
+          "voie_acces": "Bac Pro CIEL, BTS SIO, BUT Info, écoles (42...)"
+        },
+        {
+          "metier": "Game designer / level designer",
+          "voie_acces": "Écoles spé (Rubika, ENJMIN), BUT MMI"
+        },
+        {
+          "metier": "Testeur QA jeu vidéo",
+          "voie_acces": "Formations courtes, entrée accessible"
+        },
+        {
+          "metier": "Technicien cybersécurité",
+          "voie_acces": "BTS SIO + spéc., BUT Réseaux"
+        },
+        {
+          "metier": "Data analyst",
+          "voie_acces": "BUT Science des données, licences"
+        },
+        {
+          "metier": "Créateur de contenu / streamer",
+          "voie_acces": "Autodidacte + monétisation progressive"
+        },
+        {
+          "metier": "Technicien informatique / support",
+          "voie_acces": "Bac Pro CIEL, TP TAI"
+        },
+        {
+          "metier": "Monteur-assembleur PC / vendeur tech",
+          "voie_acces": "Bac Pro Commerce + passion, autodidacte"
+        },
+        {
+          "metier": "Joueur / coach esport",
+          "voie_acces": "Structures esport, statut à sécuriser (double projet)"
+        }
+      ],
+      "porte_farfelue": {
+        "metier": "Chasseur de bugs (bug bounty hunter)",
+        "description": "être payé par les entreprises pour trouver les failles de leurs systèmes avant les pirates, en toute légalité.",
+        "voie_acces": "autoformation (plateformes type YesWeHack, HackerOne) + certifications sécurité progressives"
+      }
+    },
+    {
+      "id": 6,
+      "nom": "CORPS, SPORT & PERFORMANCE",
+      "rome_familles": [
+        "G",
+        "L",
+        "J"
+      ],
+      "riasec_dominant": [
+        "R",
+        "S",
+        "E"
+      ],
+      "domaines_precis": [
+        {
+          "label": "le foot / le basket / le hand... (sport co, à préciser par sport)"
+        },
+        {
+          "label": "la muscu / le fitness"
+        },
+        {
+          "label": "les sports de combat / la boxe / le MMA"
+        },
+        {
+          "label": "la glisse / le skate / le surf / le snow"
+        },
+        {
+          "label": "le BMX / le VTT"
+        },
+        {
+          "label": "l'escalade / la montagne"
+        },
+        {
+          "label": "la danse"
+        },
+        {
+          "label": "l'équitation",
+          "renvoi": "voir aussi Univers 8"
+        },
+        {
+          "label": "l'e-sport",
+          "renvoi": "voir Univers 5"
+        },
+        {
+          "label": "l'arbitrage"
+        }
+      ],
+      "portes_entree": [
+        {
+          "metier": "Éducateur sportif / coach",
+          "voie_acces": "BPJEPS (mention par sport), CQP"
+        },
+        {
+          "metier": "Coach fitness / personal trainer",
+          "voie_acces": "BPJEPS AF, CQP IF"
+        },
+        {
+          "metier": "Préparateur physique",
+          "voie_acces": "Licence-Master STAPS"
+        },
+        {
+          "metier": "Kiné du sport",
+          "voie_acces": "Études de kiné (5 ans)"
+        },
+        {
+          "metier": "Moniteur (ski, escalade, surf...)",
+          "voie_acces": "DE spécifiques, brevets fédéraux"
+        },
+        {
+          "metier": "Vendeur technique articles de sport",
+          "voie_acces": "Bac Pro Commerce + spécialisation"
+        },
+        {
+          "metier": "Animateur sportif",
+          "voie_acces": "BPJEPS, BAFA → BPJEPS"
+        },
+        {
+          "metier": "Arbitre",
+          "voie_acces": "Filières fédérales"
+        },
+        {
+          "metier": "Danseur / prof de danse",
+          "voie_acces": "Conservatoires, DE Danse"
+        }
+      ],
+      "porte_farfelue": {
+        "metier": "Cascadeur",
+        "description": "chutes, combats, voitures : le sport de haut niveau au service du cinéma.",
+        "voie_acces": "excellent niveau sportif (gym, arts martiaux, équitation...) + écoles de cascade (Campus Univers Cascades...)"
+      }
+    },
+    {
+      "id": 7,
+      "nom": "BEAUTÉ & APPARENCE",
+      "rome_familles": [
+        "D"
+      ],
+      "riasec_dominant": [
+        "A",
+        "S",
+        "E"
+      ],
+      "domaines_precis": [
+        {
+          "label": "la coiffure"
+        },
+        {
+          "label": "le barbering"
+        },
+        {
+          "label": "l'esthétique / le skincare"
+        },
+        {
+          "label": "l'onglerie / le nail art"
+        },
+        {
+          "label": "le maquillage / le MUA"
+        },
+        {
+          "label": "le parfum"
+        },
+        {
+          "label": "la sneaker culture / le style",
+          "renvoi": "voir aussi Univers 12 pour le resell"
+        }
+      ],
+      "portes_entree": [
+        {
+          "metier": "Coiffeur / barbier",
+          "voie_acces": "CAP Coiffure, BP (obligatoire pour ouvrir)"
+        },
+        {
+          "metier": "Esthéticien(ne)",
+          "voie_acces": "CAP Esthétique, BP, Bac Pro"
+        },
+        {
+          "metier": "Prothésiste ongulaire",
+          "voie_acces": "Formations certifiantes courtes"
+        },
+        {
+          "metier": "Maquilleur pro (mode, cinéma)",
+          "voie_acces": "CAP Esthétique + formations spé"
+        },
+        {
+          "metier": "Conseiller beauté / parfumerie",
+          "voie_acces": "Bac Pro Commerce, CAP + vente"
+        },
+        {
+          "metier": "Gérant de salon",
+          "voie_acces": "BP + Brevet de Maîtrise"
+        }
+      ],
+      "porte_farfelue": {
+        "metier": "Nez / créateur de parfums",
+        "description": "composer des fragrances pour les grandes maisons ou les marques de niche.",
+        "voie_acces": "exigeante mais réelle — chimie + ISIPCA ou écoles de parfumerie (Grasse)"
+      }
+    },
+    {
+      "id": 8,
+      "nom": "NATURE & VIVANT",
+      "rome_familles": [
+        "A"
+      ],
+      "riasec_dominant": [
+        "R",
+        "I"
+      ],
+      "domaines_precis": [
+        {
+          "label": "les chiens / les chats (éducation, toilettage)"
+        },
+        {
+          "label": "les chevaux / l'équitation"
+        },
+        {
+          "label": "les animaux sauvages / exotiques"
+        },
+        {
+          "label": "l'agriculture / le maraîchage / la permaculture"
+        },
+        {
+          "label": "la forêt / le bûcheronnage"
+        },
+        {
+          "label": "la mer / la pêche / la plongée"
+        },
+        {
+          "label": "les jardins / le paysagisme"
+        },
+        {
+          "label": "l'environnement / l'écologie"
+        },
+        {
+          "label": "l'apiculture"
+        },
+        {
+          "label": "la chasse / la régulation"
+        }
+      ],
+      "portes_entree": [
+        {
+          "metier": "Éducateur canin / toiletteur",
+          "voie_acces": "Formations certifiantes, BP Éducateur canin"
+        },
+        {
+          "metier": "Soigneur animalier",
+          "voie_acces": "Formations spé (rare, sélectif), Bac Pro CGEA"
+        },
+        {
+          "metier": "Palefrenier / moniteur d'équitation",
+          "voie_acces": "CAPA, Bac Pro CGEH, BPJEPS équitation"
+        },
+        {
+          "metier": "Maraîcher / agriculteur",
+          "voie_acces": "CAPA, Bac Pro CGEA, BPREA"
+        },
+        {
+          "metier": "Bûcheron / sylviculteur",
+          "voie_acces": "CAPA Travaux forestiers, Bac Pro Forêt"
+        },
+        {
+          "metier": "Marin-pêcheur / aquaculteur",
+          "voie_acces": "CAP Maritime, Bac Pro CGEM"
+        },
+        {
+          "metier": "Jardinier-paysagiste",
+          "voie_acces": "CAPA Jardinier paysagiste, Bac Pro AP"
+        },
+        {
+          "metier": "Garde nature / technicien rivière",
+          "voie_acces": "Bac Pro GMNF, BTS GPN"
+        },
+        {
+          "metier": "Apiculteur",
+          "voie_acces": "BPREA spécialisé"
+        }
+      ],
+      "porte_farfelue": {
+        "metier": "Fauconnier d'effarouchement",
+        "description": "travailler avec des rapaces pour éloigner les oiseaux des aéroports, des vignes et des monuments.",
+        "voie_acces": "certificat de capacité animaux non domestiques + apprentissage auprès d'un fauconnier professionnel"
+      }
+    },
+    {
+      "id": 9,
+      "nom": "SOIN & AIDE AUX AUTRES",
+      "rome_familles": [
+        "J",
+        "K"
+      ],
+      "riasec_dominant": [
+        "S"
+      ],
+      "domaines_precis": [
+        {
+          "label": "le médical / l'hôpital"
+        },
+        {
+          "label": "le paramédical (infirmier, aide-soignant, ambulancier)"
+        },
+        {
+          "label": "la petite enfance / les bébés"
+        },
+        {
+          "label": "le grand âge"
+        },
+        {
+          "label": "le handicap"
+        },
+        {
+          "label": "le social / l'éducatif"
+        },
+        {
+          "label": "la psychologie / la santé mentale"
+        },
+        {
+          "label": "le secourisme / l'urgence"
+        },
+        {
+          "label": "l'humanitaire"
+        }
+      ],
+      "portes_entree": [
+        {
+          "metier": "Aide-soignant",
+          "voie_acces": "DEAS (1 an, accessible sans bac)"
+        },
+        {
+          "metier": "Infirmier",
+          "voie_acces": "IFSI via Parcoursup (3 ans)"
+        },
+        {
+          "metier": "Ambulancier",
+          "voie_acces": "DEA (formation courte)"
+        },
+        {
+          "metier": "Auxiliaire de puériculture",
+          "voie_acces": "DEAP"
+        },
+        {
+          "metier": "Accompagnant éducatif et social (AES)",
+          "voie_acces": "DEAES"
+        },
+        {
+          "metier": "Éducateur spécialisé",
+          "voie_acces": "DEES (3 ans)"
+        },
+        {
+          "metier": "Moniteur-éducateur",
+          "voie_acces": "DEME (2 ans)"
+        },
+        {
+          "metier": "Animateur social",
+          "voie_acces": "BPJEPS AS"
+        },
+        {
+          "metier": "Secouriste / pompier (voir Univers 13)",
+          "voie_acces": "Filières SP"
+        }
+      ],
+      "porte_farfelue": {
+        "metier": "Clown hospitalier professionnel",
+        "description": "intervenir en service pédiatrique pour transformer le séjour des enfants malades. Un vrai métier, avec de vraies formations.",
+        "voie_acces": "formation artistique (clown, théâtre) + formations spécialisées des associations (Le Rire Médecin...)"
+      }
+    },
+    {
+      "id": 10,
+      "nom": "MUSIQUE & SCÈNE",
+      "rome_familles": [
+        "L"
+      ],
+      "riasec_dominant": [
+        "A"
+      ],
+      "domaines_precis": [
+        {
+          "label": "la musique / un instrument"
+        },
+        {
+          "label": "le rap / le chant"
+        },
+        {
+          "label": "la MAO / le beatmaking"
+        },
+        {
+          "label": "le DJing"
+        },
+        {
+          "label": "le son / la sono"
+        },
+        {
+          "label": "la lumière / la scène"
+        },
+        {
+          "label": "le théâtre / la comédie"
+        },
+        {
+          "label": "l'événementiel / les festivals"
+        },
+        {
+          "label": "l'humour / le stand-up"
+        }
+      ],
+      "portes_entree": [
+        {
+          "metier": "Technicien son",
+          "voie_acces": "BTS Audiovisuel son, formations spé (CFPM...)"
+        },
+        {
+          "metier": "Technicien lumière / plateau",
+          "voie_acces": "Formations spé, intermittence progressive"
+        },
+        {
+          "metier": "Beatmaker / producteur",
+          "voie_acces": "Autodidacte + MAO, écoles son"
+        },
+        {
+          "metier": "DJ",
+          "voie_acces": "Autodidacte, écoles DJ, résidences"
+        },
+        {
+          "metier": "Régisseur événementiel",
+          "voie_acces": "BTS, licences pro, terrain"
+        },
+        {
+          "metier": "Musicien / artiste",
+          "voie_acces": "Conservatoire, MIMA, double projet conseillé"
+        },
+        {
+          "metier": "Roadie / technicien de tournée",
+          "voie_acces": "Terrain + habilitations"
+        }
+      ],
+      "porte_farfelue": {
+        "metier": "Bruiteur de cinéma (foley artist)",
+        "description": "recréer en studio tous les sons d'un film : les pas, les portes, les combats, avec des objets improbables.",
+        "voie_acces": "BTS Audiovisuel son + apprentissage auprès d'un bruiteur (métier rare, transmission directe)"
+      }
+    },
+    {
+      "id": 11,
+      "nom": "RÉCIT, CULTURE & MÉDIAS",
+      "rome_familles": [
+        "E"
+      ],
+      "riasec_dominant": [
+        "A",
+        "I"
+      ],
+      "domaines_precis": [
+        {
+          "label": "l'écriture / les histoires"
+        },
+        {
+          "label": "le journalisme / l'actu"
+        },
+        {
+          "label": "les langues / les cultures étrangères"
+        },
+        {
+          "label": "l'histoire / le patrimoine"
+        },
+        {
+          "label": "les mangas / la BD / les comics"
+        },
+        {
+          "label": "le cinéma / les séries"
+        },
+        {
+          "label": "les livres / la lecture"
+        },
+        {
+          "label": "les réseaux sociaux / la création de contenu"
+        },
+        {
+          "label": "les podcasts"
+        }
+      ],
+      "portes_entree": [
+        {
+          "metier": "Community manager",
+          "voie_acces": "BUT MMI, BTS Communication"
+        },
+        {
+          "metier": "Journaliste (web, sport, spécialisé)",
+          "voie_acces": "Écoles de journalisme, licences info-com"
+        },
+        {
+          "metier": "Traducteur / interprète",
+          "voie_acces": "Licences LEA, masters"
+        },
+        {
+          "metier": "Libraire",
+          "voie_acces": "Bac Pro Commerce, BP Libraire"
+        },
+        {
+          "metier": "Médiateur culturel / guide",
+          "voie_acces": "Licences histoire de l'art, BTS Tourisme"
+        },
+        {
+          "metier": "Scénariste / auteur",
+          "voie_acces": "Écoles spé, double projet conseillé"
+        },
+        {
+          "metier": "Podcasteur / vidéaste",
+          "voie_acces": "Autodidacte + monétisation progressive"
+        }
+      ],
+      "porte_farfelue": {
+        "metier": "Concepteur d'escape games",
+        "description": "écrire des scénarios, imaginer des énigmes et construire des univers immersifs.",
+        "voie_acces": "profil hybride récit + bricolage + game design, entrée par les enseignes du secteur ou en indépendant"
+      }
+    },
+    {
+      "id": 12,
+      "nom": "COMMERCE, BUSINESS & ENTREPRENEURIAT",
+      "rome_familles": [
+        "D",
+        "C",
+        "M"
+      ],
+      "riasec_dominant": [
+        "E",
+        "C"
+      ],
+      "domaines_precis": [
+        {
+          "label": "la vente / le commerce"
+        },
+        {
+          "label": "le e-commerce / le dropshipping"
+        },
+        {
+          "label": "la sneaker culture / le resell"
+        },
+        {
+          "label": "l'immobilier"
+        },
+        {
+          "label": "la finance / la crypto / la bourse"
+        },
+        {
+          "label": "le marketing / la pub"
+        },
+        {
+          "label": "le management / la gestion"
+        },
+        {
+          "label": "l'hôtellerie / le tourisme / le voyage"
+        },
+        {
+          "label": "le luxe"
+        }
+      ],
+      "portes_entree": [
+        {
+          "metier": "Vendeur / conseiller de vente",
+          "voie_acces": "CAP EPC, Bac Pro MCV"
+        },
+        {
+          "metier": "Commercial",
+          "voie_acces": "BTS NDRC, BUT TC"
+        },
+        {
+          "metier": "Agent immobilier",
+          "voie_acces": "BTS PI, licence + carte pro"
+        },
+        {
+          "metier": "E-commerçant",
+          "voie_acces": "Bac Pro MCV + autoformation, BTS"
+        },
+        {
+          "metier": "Community manager / traffic manager",
+          "voie_acces": "BUT MMI, BTS Com"
+        },
+        {
+          "metier": "Chargé de clientèle banque",
+          "voie_acces": "BTS Banque"
+        },
+        {
+          "metier": "Réceptionniste / hôtellerie",
+          "voie_acces": "Bac Pro MHR, BTS MHR"
+        },
+        {
+          "metier": "Conseiller voyage",
+          "voie_acces": "BTS Tourisme"
+        },
+        {
+          "metier": "Entrepreneur",
+          "voie_acces": "Toutes voies + accompagnement (BGE, CCI, couveuses)"
+        }
+      ],
+      "porte_farfelue": {
+        "metier": "Authentificateur de sneakers et de produits de luxe",
+        "description": "traquer les contrefaçons pour les plateformes de revente et les maisons de vente.",
+        "voie_acces": "expertise autodidacte (culture sneaker/luxe) + formations internes des plateformes de resell"
+      }
+    },
+    {
+      "id": 13,
+      "nom": "SÉCURITÉ, DÉFENSE & JUSTICE",
+      "rome_familles": [
+        "K"
+      ],
+      "riasec_dominant": [
+        "R",
+        "S",
+        "C"
+      ],
+      "domaines_precis": [
+        {
+          "label": "l'armée (terre, air, mer)"
+        },
+        {
+          "label": "la police / la gendarmerie"
+        },
+        {
+          "label": "les pompiers"
+        },
+        {
+          "label": "la sécurité privée / le gardiennage"
+        },
+        {
+          "label": "le droit / la justice"
+        },
+        {
+          "label": "la douane / les frontières"
+        },
+        {
+          "label": "la prison / la PJJ"
+        },
+        {
+          "label": "le renseignement"
+        },
+        {
+          "label": "la sécurité civile / le secourisme"
+        }
+      ],
+      "portes_entree": [
+        {
+          "metier": "Militaire du rang → sous-officier",
+          "voie_acces": "Recrutement direct dès 17,5 ans, sans diplôme requis"
+        },
+        {
+          "metier": "Gendarme adjoint / policier adjoint",
+          "voie_acces": "Recrutement direct, puis concours interne"
+        },
+        {
+          "metier": "Gardien de la paix",
+          "voie_acces": "Concours (bac)"
+        },
+        {
+          "metier": "Sapeur-pompier professionnel",
+          "voie_acces": "Concours + SPV comme porte d'entrée"
+        },
+        {
+          "metier": "Agent de sécurité privée",
+          "voie_acces": "TFP APS (formation courte + carte pro)"
+        },
+        {
+          "metier": "Surveillant pénitentiaire",
+          "voie_acces": "Concours (brevet)"
+        },
+        {
+          "metier": "Douanier",
+          "voie_acces": "Concours (brevet à bac+3 selon grade)"
+        },
+        {
+          "metier": "Greffier / juriste",
+          "voie_acces": "Licence de droit → concours"
+        }
+      ],
+      "porte_farfelue": {
+        "metier": "Plongeur-démineur de la Marine nationale",
+        "description": "neutraliser les munitions immergées, l'un des métiers les plus sélectifs des armées.",
+        "voie_acces": "engagement Marine + sélections physiques et techniques exigeantes (école de plongée)"
+      }
+    },
+    {
+      "id": 14,
+      "nom": "SCIENCES, TECHNIQUE & EXPLORATION",
+      "rome_familles": [
+        "H",
+        "M"
+      ],
+      "riasec_dominant": [
+        "I",
+        "R"
+      ],
+      "domaines_precis": [
+        {
+          "label": "l'espace / l'astronomie"
+        },
+        {
+          "label": "la chimie / les expériences"
+        },
+        {
+          "label": "la biologie / le corps humain"
+        },
+        {
+          "label": "les maths / la logique"
+        },
+        {
+          "label": "l'énergie / le nucléaire / les renouvelables"
+        },
+        {
+          "label": "la robotique / l'électronique / l'Arduino"
+        },
+        {
+          "label": "la météo / le climat"
+        },
+        {
+          "label": "l'industrie / les machines"
+        },
+        {
+          "label": "l'impression 3D / la fabrication numérique"
+        }
+      ],
+      "portes_entree": [
+        {
+          "metier": "Technicien de maintenance industrielle",
+          "voie_acces": "Bac Pro MSPC, BTS MS"
+        },
+        {
+          "metier": "Technicien de laboratoire",
+          "voie_acces": "Bac Pro, BTS Bioanalyses, BUT"
+        },
+        {
+          "metier": "Électronicien / roboticien",
+          "voie_acces": "Bac Pro CIEL, BTS CIEL, BUT GEII"
+        },
+        {
+          "metier": "Technicien fabrication numérique",
+          "voie_acces": "Bac Pro + spé FabLab, BTS"
+        },
+        {
+          "metier": "Technicien énergie / nucléaire",
+          "voie_acces": "Bac Pro MELEC, BTS Environnement nucléaire"
+        },
+        {
+          "metier": "Opérateur / conducteur de ligne",
+          "voie_acces": "Bac Pro PSPA, titres pro"
+        },
+        {
+          "metier": "Ingénieur (toutes spé)",
+          "voie_acces": "Prépa/BUT → écoles d'ingénieurs"
+        },
+        {
+          "metier": "Technicien météo",
+          "voie_acces": "BTS, concours Météo-France"
+        }
+      ],
+      "porte_farfelue": {
+        "metier": "Souffleur de verre scientifique",
+        "description": "fabriquer à la main les instruments en verre des laboratoires de recherche. Un artisanat rare que les labos s'arrachent.",
+        "voie_acces": "CAP/BMA Verrier + spécialisation verrerie scientifique (lycée Dorian...)"
+      }
+    }
+  ]
+};

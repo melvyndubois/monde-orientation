@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monde. — Dossier de présentation</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0B0A08;
+    --ink-soft: #1B1914;
+    --paper: #F3F0E7;
+    --paper-soft: #EAE6D9;
+    --sun: #E8A33D;
+    --sun-deep: #C77F1B;
+    --sun-dark: #3D2703;
+    --line-dark: rgba(243, 240, 231, 0.14);
+    --line-light: rgba(11, 10, 8, 0.1);
+    --muted-dark: rgba(243, 240, 231, 0.55);
+    --muted-light: rgba(11, 10, 8, 0.55);
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+
+  .serif { font-family: 'Instrument Serif', serif; }
+  .italic { font-style: italic; }
+
+  .page {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  /* ── COVER ── */
+  .cover {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 5rem 0 4rem;
+  }
+  .cover-inner { max-width: 860px; margin: 0 auto; padding: 0 2rem; }
+
+  .cover-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-dark);
+    margin-bottom: 5rem;
+  }
+
+  .cover-brand {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(4.5rem, 12vw, 8rem);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+  }
+  .cover-brand .dot { color: var(--sun); }
+
+  .cover-tagline {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: clamp(1.4rem, 3.5vw, 1.9rem);
+    color: var(--sun);
+    margin-bottom: 3rem;
+  }
+
+  .cover-desc {
+    font-size: 16px;
+    color: var(--muted-dark);
+    max-width: 520px;
+    line-height: 1.7;
+  }
+
+  .cover-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 5rem;
+    padding-top: 2rem;
+    border-top: 0.5px solid var(--line-dark);
+    font-size: 12px;
+    color: var(--muted-dark);
+  }
+  .cover-footer strong { color: var(--paper); font-weight: 400; }
+
+  /* ── SECTIONS ── */
+  .section {
+    padding: 4rem 0;
+    border-bottom: 0.5px solid var(--line-light);
+  }
+  .section:last-of-type { border-bottom: none; }
+
+  .s-label {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sun-deep);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .s-label::before {
+    content: '';
+    width: 28px;
+    height: 0.5px;
+    background: var(--ink);
+  }
+
+  .s-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(1.9rem, 4.5vw, 2.6rem);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    margin-bottom: 1.5rem;
+    max-width: 640px;
+  }
+  .s-title .accent {
+    font-style: italic;
+    background: linear-gradient(transparent 62%, rgba(232, 163, 61, 0.45) 62%);
+    padding: 0 3px;
+  }
+
+  .s-body {
+    font-size: 15px;
+    color: var(--muted-light);
+    max-width: 620px;
+    line-height: 1.75;
+  }
+  .s-body strong { color: var(--ink); font-weight: 500; }
+  .s-body p + p { margin-top: 1rem; }
+
+  /* Pull quote */
+  .pull {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 4px;
+    padding: 2.5rem;
+    margin: 2.5rem 0 0;
+  }
+  .pull-label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sun);
+    margin-bottom: 1rem;
+  }
+  .pull-text {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 22px;
+    line-height: 1.45;
+    max-width: 600px;
+  }
+  .pull-text::before { content: '« '; color: var(--sun); }
+  .pull-text::after { content: ' »'; color: var(--sun); }
+
+  /* Le pivot — schéma hiérarchie */
+  .pivot {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+    background: var(--line-light);
+    border: 0.5px solid var(--line-light);
+    margin-top: 2.5rem;
+  }
+  .pivot-row {
+    background: var(--paper);
+    display: grid;
+    grid-template-columns: 90px 220px 1fr;
+    gap: 1.5rem;
+    padding: 1.5rem 1.75rem;
+    align-items: baseline;
+  }
+  .pivot-row.hero { background: var(--ink); color: var(--paper); }
+  .pivot-num {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--sun-deep);
+  }
+  .pivot-row.hero .pivot-num { color: var(--sun); }
+  .pivot-name {
+    font-family: 'Instrument Serif', serif;
+    font-size: 24px;
+    line-height: 1.15;
+  }
+  .pivot-desc {
+    font-size: 13px;
+    color: var(--muted-light);
+    line-height: 1.6;
+  }
+  .pivot-row.hero .pivot-desc { color: var(--muted-dark); }
+  .pivot-ex {
+    display: block;
+    margin-top: 6px;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--sun-deep);
+  }
+  .pivot-row.hero .pivot-ex { color: var(--sun); }
+
+  /* Steps */
+  .steps { margin-top: 2.5rem; display: grid; gap: 0; border-top: 0.5px solid var(--line-light); }
+  .step {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+    border-bottom: 0.5px solid var(--line-light);
+  }
+  .step-num {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 24px;
+    color: var(--sun-deep);
+    line-height: 1;
+  }
+  .step-title { font-size: 15px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+  .step-desc { font-size: 13px; color: var(--muted-light); line-height: 1.6; }
+
+  /* Traction */
+  .traction {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 0.5px solid var(--line-light);
+    border-right: none;
+    margin-top: 2.5rem;
+  }
+  .traction-item {
+    padding: 2rem 1.75rem;
+    border-right: 0.5px solid var(--line-light);
+  }
+  .traction-num {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 44px;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .traction-label {
+    font-size: 12px;
+    color: var(--muted-light);
+    line-height: 1.5;
+  }
+
+  /* Modèle éco */
+  .eco {
+    margin-top: 2.5rem;
+    display: grid;
+    gap: 1px;
+    background: var(--line-light);
+    border: 0.5px solid var(--line-light);
+  }
+  .eco-row {
+    background: var(--paper);
+    display: grid;
+    grid-template-columns: 130px 1fr 180px;
+    gap: 1.5rem;
+    padding: 1.25rem 1.75rem;
+    align-items: baseline;
+  }
+  .eco-phase {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sun-deep);
+    font-weight: 500;
+  }
+  .eco-what { font-size: 14px; color: var(--ink); font-weight: 400; }
+  .eco-what span { display: block; font-size: 12px; color: var(--muted-light); font-weight: 300; margin-top: 2px; }
+  .eco-amount {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 17px;
+    text-align: right;
+  }
+
+  /* Ask */
+  .ask {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 4rem 0;
+  }
+  .ask-inner { max-width: 860px; margin: 0 auto; padding: 0 2rem; }
+  .ask .s-label { color: var(--sun); }
+  .ask .s-label::before { background: var(--paper); }
+  .ask-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(1.9rem, 4.5vw, 2.6rem);
+    line-height: 1.15;
+    margin-bottom: 1.5rem;
+    max-width: 640px;
+  }
+  .ask-title .italic { color: var(--sun); }
+  .ask-body { font-size: 15px; color: var(--muted-dark); max-width: 580px; line-height: 1.75; margin-bottom: 2.5rem; }
+  .ask-contact {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-top: 2rem;
+    border-top: 0.5px solid var(--line-dark);
+    font-size: 13px;
+    color: var(--muted-dark);
+  }
+  .ask-contact strong { color: var(--paper); font-weight: 400; display: block; margin-bottom: 2px; }
+  .ask-contact .mail { color: var(--sun); }
+
+  @media (max-width: 640px) {
+    .pivot-row { grid-template-columns: 1fr; gap: 8px; }
+    .eco-row { grid-template-columns: 1fr; gap: 6px; }
+    .eco-amount { text-align: left; }
+    .traction { grid-template-columns: 1fr; border-right: 0.5px solid var(--line-light); }
+    .traction-item { border-right: none; border-bottom: 0.5px solid var(--line-light); }
+    .cover-footer { flex-direction: column; gap: 1rem; align-items: flex-start; }
+    .ask-contact { flex-direction: column; gap: 1rem; align-items: flex-start; }
+  }
+
+  @media print {
+    .cover, .ask, .pull, .pivot-row.hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-inner">
+    <div class="cover-meta">
+      <span>Dossier de présentation — v1.0</span>
+      <span>Juillet 2026</span>
+    </div>
+    <h1 class="cover-brand">Monde<span class="dot">.</span></h1>
+    <p class="cover-tagline">Trouve ton monde.</p>
+    <p class="cover-desc">
+      Un outil d'orientation nouvelle génération qui lit les données comportementales des jeunes pour nommer leur monde — avant de leur parler de métier.
+    </p>
+    <div class="cover-footer">
+      <span><strong>Clément Gal</strong>clement.gal.pro@gmail.com · 06 27 93 56 72</span>
+      <span>Gap, Hautes-Alpes</span>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- I. LE PROBLÈME -->
+  <div class="section">
+    <div class="s-label">I. Le problème</div>
+    <h2 class="s-title">On demande aux jeunes de choisir un métier <span class="accent">qu'ils ne connaissent pas.</span></h2>
+    <div class="s-body">
+      <p>Chaque année, des milliers de jeunes arrivent en entretien d'orientation sans savoir ce qu'ils veulent. Les outils existants — questionnaires RIASEC, tests de personnalité — posent des questions auxquelles ils ne savent pas répondre honnêtement, et les enferment dans le choix angoissant d'un métier précis à 16 ans.</p>
+      <p><strong>Tony, 16 ans</strong>, notes moyennes en bac général, passe quatre heures par jour sur son téléphone. Ce téléphone en sait plus sur lui que n'importe quel bilan d'orientation classique.</p>
+    </div>
+    <div class="pull">
+      <div class="pull-label">Notre conviction</div>
+      <p class="pull-text">Le feed révèle ce que le jeune ne sait pas encore formuler. Notre outil le traduit en connaissance de soi.</p>
+    </div>
+  </div>
+
+  <!-- II. LE PIVOT -->
+  <div class="section">
+    <div class="s-label">II. Notre approche</div>
+    <h2 class="s-title">D'abord le monde. <span class="accent">Ensuite le métier.</span></h2>
+    <div class="s-body">
+      <p>Un métier visé à 16 ans est une projection fragile : le jeune n'en connaît qu'une fraction, et sa motivation se détache à la première difficulté. <strong>Le monde, lui, est durable.</strong> Un jeune passionné d'automobile peut être mécanicien, carrossier, restaurateur de voitures anciennes ou gérant de garage — quatre portes d'entrée vers le même monde.</p>
+      <p>Et ce monde doit être nommé avec précision, avec le mot que le jeune utiliserait lui-même. Pas « mobilité » : <strong>l'automobile</strong>. Pas « sports urbains » : <strong>le BMX</strong>. C'est cette justesse qui déclenche la reconnaissance — et la motivation.</p>
+    </div>
+    <div class="pivot">
+      <div class="pivot-row hero">
+        <span class="pivot-num">i.</span>
+        <span class="pivot-name serif">Ton monde</span>
+        <span class="pivot-desc">L'univers précis où le jeune s'épanouit, détecté dans ses données comportementales.
+          <span class="pivot-ex">« Ton monde, c'est l'automobile. »</span>
+        </span>
+      </div>
+      <div class="pivot-row">
+        <span class="pivot-num">ii.</span>
+        <span class="pivot-name serif">Tes facettes</span>
+        <span class="pivot-desc">Ce qui le fait vibrer dans ce monde, exprimé en verbes.
+          <span class="pivot-ex">Réparer. Personnaliser. Entreprendre. Transmettre.</span>
+        </span>
+      </div>
+      <div class="pivot-row">
+        <span class="pivot-num">iii.</span>
+        <span class="pivot-name serif">Tes portes d'entrée</span>
+        <span class="pivot-desc">Des métiers concrets qui matérialisent le croisement monde × facettes — avec salaires, durées d'études et voies de formation.
+          <span class="pivot-ex">Mécanicien spécialisé · Carrossier · Restaurateur d'anciennes · Gérant de garage</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- III. COMMENT ÇA MARCHE -->
+  <div class="section">
+    <div class="s-label">III. Comment ça fonctionne</div>
+    <h2 class="s-title">Le jeune reste maître <span class="accent">de ses données.</span></h2>
+    <div class="steps">
+      <div class="step">
+        <span class="step-num">i.</span>
+        <div>
+          <div class="step-title">Le jeune exporte ses données</div>
+          <div class="step-desc">Via la fonction « Télécharge mes données » de TikTok, Instagram ou YouTube — un droit garanti par le RGPD. Le fichier lui appartient ; il choisit de le partager. Aucune connexion aux plateformes, aucun stockage tiers.</div>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">ii.</span>
+        <div>
+          <div class="step-title">L'IA lit les patterns</div>
+          <div class="step-desc">Sujets regardés en entier, comptes suivis, recherches effectuées, temps d'engagement. Des signaux que même le jeune n'a pas conscientisés — et que l'IA traduit en monde, en facettes et en preuves qu'il reconnaît.</div>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">iii.</span>
+        <div>
+          <div class="step-title">Deux livrables, deux publics</div>
+          <div class="step-desc">Pour le jeune : un rapport éditorial qui nomme son monde et ouvre des portes concrètes. Pour le conseiller : une synthèse structurée qui remplace trois séances de découverte et permet d'aller directement au fond.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IV. TRACTION -->
+  <div class="section">
+    <div class="s-label">IV. Où nous en sommes</div>
+    <h2 class="s-title">Testé, itéré, <span class="accent">et déjà en V2.</span></h2>
+    <div class="s-body">
+      <p>Le projet est porté par une équipe de deux personnes : un profil terrain issu de l'éducation, de la jeunesse et de l'ESS (développement de partenariats institutionnels, appels à projets), et un profil produit qui a construit et optimisé les deux premières versions de l'outil.</p>
+    </div>
+    <div class="traction">
+      <div class="traction-item">
+        <div class="traction-num">13</div>
+        <div class="traction-label">jeunes ont testé l'outil, avec des retours très positifs</div>
+      </div>
+      <div class="traction-item">
+        <div class="traction-num">V2</div>
+        <div class="traction-label">déjà développée — la refonte design et UX est en cours</div>
+      </div>
+      <div class="traction-item">
+        <div class="traction-num">3 <span style="font-size: 20px;">min</span></div>
+        <div class="traction-label">pour passer d'un export de données à un rapport complet</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- V. MODÈLE -->
+  <div class="section">
+    <div class="s-label">V. Modèle économique</div>
+    <h2 class="s-title">Le public finance la construction, <span class="accent">l'institution paie l'usage.</span></h2>
+    <div class="eco">
+      <div class="eco-row">
+        <span class="eco-phase">0 – 6 mois</span>
+        <span class="eco-what">Appels à projets & subventions<span>Fondations, Région, dispositifs orientation — financent le développement</span></span>
+        <span class="eco-amount">20 – 150 k€ / projet</span>
+      </div>
+      <div class="eco-row">
+        <span class="eco-phase">6 – 18 mois</span>
+        <span class="eco-what">Licences structures<span>Missions Locales, associations, lycées — abonnement annuel par structure</span></span>
+        <span class="eco-amount">1,5 – 5 k€ / an</span>
+      </div>
+      <div class="eco-row">
+        <span class="eco-phase">18 mois +</span>
+        <span class="eco-what">Contrats Régions<span>Compétence orientation régionale (loi Avenir Pro) — passage à l'échelle</span></span>
+        <span class="eco-amount">50 – 200 k€ / an</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- VI. ASK -->
+<div class="ask">
+  <div class="ask-inner">
+    <div class="s-label">VI. Ce que nous cherchons</div>
+    <h2 class="ask-title">Un partenaire pour le <span class="italic">premier pilote.</span></h2>
+    <p class="ask-body">
+      Une association, une Mission Locale ou un établissement prêt à co-construire et tester l'outil avec 10 à 20 jeunes. L'objectif : mesurer l'impact sur la qualité des entretiens d'orientation, affiner le produit avec les conseillers, et préparer un déploiement plus large.
+    </p>
+    <div class="ask-contact">
+      <span><strong>Clément Gal</strong><span class="mail">clement.gal.pro@gmail.com</span> · 06 27 93 56 72</span>
+      <span>Monde. — document de travail confidentiel</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

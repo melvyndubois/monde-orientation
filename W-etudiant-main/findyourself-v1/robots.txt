@@ -1,0 +1,4 @@
+# Outil d'orientation réservé à un usage encadré (via conseillers).
+# On décourage l'indexation par les moteurs de recherche.
+User-agent: *
+Disallow: /

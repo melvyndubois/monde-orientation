@@ -1,0 +1,33 @@
+# ═══════════════════════════════════════════════════════════════
+# Configuration de déploiement Netlify — Monde.
+# Voir docs/deploiement.md pour la marche à suivre complète.
+# ═══════════════════════════════════════════════════════════════
+
+[build]
+  # Le site publié = uniquement le dossier de l'app (pas Data/, docs/, server/…)
+  publish   = "W-etudiant-main/findyourself-v1"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# /api/analyze → la fonction serverless (proxy sécurisé)
+[[redirects]]
+  from   = "/api/analyze"
+  to     = "/.netlify/functions/analyze"
+  status = 200
+
+# ── En-têtes de sécurité appliqués à tout le site ──
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options            = "DENY"
+    X-Content-Type-Options     = "nosniff"
+    Referrer-Policy            = "no-referrer"
+    Permissions-Policy         = "geolocation=(), microphone=(), camera=()"
+    Strict-Transport-Security  = "max-age=31536000; includeSubDomains"
+    # CSP : la clé API n'est jamais appelée depuis le navigateur.
+    # connect-src 'self' => le front ne peut appeler QUE la fonction proxy (même origine),
+    # ce qui bloque techniquement tout appel direct à l'API Anthropic depuis le client.
+    # Les CDN (polices Google, JSZip) sont explicitement autorisés.
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"

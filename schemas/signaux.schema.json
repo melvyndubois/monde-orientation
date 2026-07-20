@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://monde.app/schemas/signaux/v1.json",
+  "title": "Signaux comportementaux extraits",
+  "description": "Format des signaux extraits localement des exports TikTok/Instagram et transmis au moteur d'analyse. RGPD (minimisation) : seuls ces signaux quittent le navigateur, jamais l'export brut. Version 1.",
+  "version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "comptes_suivis": {
+      "type": "array",
+      "description": "Comptes suivis (échantillon, dédupliqué).",
+      "items": { "type": "string" },
+      "maxItems": 50
+    },
+    "themes_videos": {
+      "type": "array",
+      "description": "Thèmes / hashtags / auteurs détectés dans les contenus visionnés.",
+      "items": { "type": "string" },
+      "maxItems": 50
+    },
+    "recherches": {
+      "type": "array",
+      "description": "Requêtes de recherche récentes.",
+      "items": { "type": "string" },
+      "maxItems": 30
+    },
+    "favoris": {
+      "type": "array",
+      "description": "Comptes likés / contenus sauvegardés.",
+      "items": { "type": "string" },
+      "maxItems": 30
+    },
+    "extraits_legendes": {
+      "type": "array",
+      "description": "Extraits de légendes de contenus visionnés/sauvegardés.",
+      "items": { "type": "string" },
+      "maxItems": 20
+    },
+    "patterns_horaires": {
+      "type": "string",
+      "description": "Description des créneaux d'activité (les créneaux 22h-2h sont surpondérés par le moteur)."
+    },
+    "frequence": {
+      "type": "string",
+      "description": "Fréquence / intensité d'utilisation estimée."
+    },
+    "bio": {
+      "type": "string",
+      "description": "Bio du profil, si disponible."
+    }
+  },
+  "anyOf": [
+    { "required": ["comptes_suivis"] },
+    { "required": ["themes_videos"] },
+    { "required": ["recherches"] },
+    { "required": ["favoris"] },
+    { "required": ["extraits_legendes"] }
+  ]
+}

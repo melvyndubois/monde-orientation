@@ -1,0 +1,3549 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FindYourself — L'orientation qui te connaît déjà</title>
+
+  <!-- Typographies -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+
+  <!-- JSZip pour extraction des archives Instagram/TikTok -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <!-- Référentiel domaines/métiers v1.1 — généré depuis Data/referentiel_domaines_metiers_v1-1.json -->
+  <script src="referentiel.js"></script>
+  <!-- Référentiel formations CPF (parcours adultes) — généré depuis Data/referentiel_formations_cpf.json -->
+  <script src="referentiel-cpf.js"></script>
+  <!-- Phrases d'attente — éditer loading-phrases.js -->
+  <script src="loading-phrases.js"></script>
+
+  <style>
+    /* ═══════════════════════════════════════════════
+       DESIGN SYSTEM
+    ═══════════════════════════════════════════════ */
+    :root {
+      --green:        #1D9E75;
+      --green-light:  #E1F5EE;
+      --green-dark:   #085041;
+      --green-mid:    #0F6E56;
+      --amber:        #EF9F27;
+      --amber-light:  #FAEEDA;
+      --purple:       #7F77DD;
+      --purple-light: #EEEDFE;
+      --coral:        #D85A30;
+      --coral-light:  #FAECE7;
+      --bg:           #F7F6F2;
+      --bg-card:      #FFFFFF;
+      --text:         #1a1a18;
+      --text-muted:   #6B6B66;
+      --text-light:   #9B9B96;
+      --border:       rgba(0,0,0,0.08);
+      --radius:       16px;
+      --radius-sm:    8px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Gestion des écrans ── */
+    .screen { display: none; min-height: 100vh; }
+    .screen.active { display: block; }
+
+    /* ── Typographie ── */
+    h1, h2, h3, h4 { font-family: 'Syne', sans-serif; }
+    em { font-family: 'Instrument Serif', serif; font-style: italic; }
+
+    /* ── Boutons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 100px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn-primary  { background: var(--green); color: white; }
+    .btn-primary:hover:not(:disabled) { background: var(--green-mid); transform: translateY(-1px); }
+    .btn-ghost    { background: transparent; color: white; border: 1.5px solid rgba(255,255,255,0.3); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+    .btn-outline  { background: transparent; color: var(--green); border: 1.5px solid var(--green); }
+    .btn-outline:hover { background: var(--green-light); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      padding: 12px 24px;
+      border-radius: 100px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 9999;
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      pointer-events: none;
+      background: var(--text);
+      color: white;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.success { background: var(--green); }
+    .toast.error   { background: var(--coral); }
+
+    /* ═══════════════════════════════════════════════
+       ÉCRAN 1 — ACCUEIL
+    ═══════════════════════════════════════════════ */
+    #screen-home {
+      background: var(--text);
+      color: white;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero-g1 {
+      position: absolute; pointer-events: none;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(29,158,117,0.22) 0%, transparent 65%);
+      top: -200px; left: -150px;
+    }
+    .hero-g2 {
+      position: absolute; pointer-events: none;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(127,119,221,0.16) 0%, transparent 65%);
+      bottom: -100px; right: -100px;
+    }
+
+    .hero-nav {
+      position: relative; z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 48px;
+    }
+
+    .logo-mark {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.5px;
+    }
+    .logo-mark .accent { color: var(--green); }
+
+    .hero-content {
+      position: relative; z-index: 2;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 72px 24px 56px;
+      text-align: center;
+      flex: 1;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(29,158,117,0.14);
+      border: 1px solid rgba(29,158,117,0.28);
+      color: var(--green);
+      padding: 6px 18px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 32px;
+      letter-spacing: 0.3px;
+    }
+
+    .hero-title {
+      font-size: clamp(40px, 7vw, 76px);
+      font-weight: 800;
+      line-height: 1.04;
+      letter-spacing: -2.5px;
+      margin-bottom: 24px;
+    }
+    .hero-title em {
+      color: var(--green);
+      font-size: 1.06em;
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: rgba(255,255,255,0.62);
+      line-height: 1.65;
+      max-width: 500px;
+      margin: 0 auto 40px;
+      font-weight: 300;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .stats-bar {
+      position: relative; z-index: 2;
+      display: flex;
+      justify-content: center;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .stat-item {
+      flex: 1;
+      max-width: 260px;
+      padding: 28px 24px;
+      text-align: center;
+      border-right: 1px solid rgba(255,255,255,0.07);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-number {
+      font-family: 'Syne', sans-serif;
+      font-size: 34px;
+      font-weight: 800;
+      color: var(--green);
+      margin-bottom: 4px;
+    }
+    .stat-label { font-size: 13px; color: rgba(255,255,255,0.45); font-weight: 300; }
+
+    /* ═══════════════════════════════════════════════
+       ÉCRAN 2 — FORMULAIRE
+    ═══════════════════════════════════════════════ */
+    #screen-form { background: var(--bg); padding-bottom: 80px; }
+
+    .form-topbar {
+      background: var(--text);
+      padding: 18px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .back-btn {
+      background: none; border: none;
+      color: rgba(255,255,255,0.5);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .back-btn:hover { color: white; }
+
+    .form-wrap { max-width: 680px; margin: 0 auto; padding: 48px 24px; }
+
+    /* Carte générique */
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 28px;
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    /* Inputs */
+    .fg { margin-bottom: 18px; }
+    .fg label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .fi, .fs, .ft {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      color: var(--text);
+      background: var(--bg);
+      transition: border-color 0.2s, background 0.2s;
+      outline: none;
+    }
+    .fi:focus, .fs:focus, .ft:focus {
+      border-color: var(--green);
+      background: white;
+    }
+    .ft { resize: vertical; min-height: 90px; }
+    .ft.tall { min-height: 110px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* Radio pills */
+    .radio-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+    .rpill input[type="radio"] { display: none; }
+    .rpill label {
+      padding: 8px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s;
+      color: var(--text-muted);
+      background: var(--bg);
+      display: block;
+    }
+    .rpill input[type="radio"]:checked + label {
+      border-color: var(--green);
+      background: var(--green-light);
+      color: var(--green-dark);
+    }
+
+    /* Carte clé API */
+    .api-card {
+      background: rgba(29,158,117,0.05);
+      border: 1.5px solid rgba(29,158,117,0.2);
+      border-radius: var(--radius);
+      padding: 22px 26px;
+      margin-bottom: 16px;
+    }
+    .api-card .card-title { margin-bottom: 10px; font-size: 15px; }
+    .api-hint { font-size: 13px; color: var(--text-light); margin-top: 8px; }
+    .api-hint a { color: var(--green); text-decoration: none; }
+    .api-hint a:hover { text-decoration: underline; }
+
+    /* Zone de dépôt */
+    .dropzone {
+      border: 2px dashed rgba(0,0,0,0.14);
+      border-radius: var(--radius);
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.22s;
+      background: white;
+      margin-bottom: 12px;
+    }
+    .dropzone:hover, .dropzone.over { border-color: var(--green); background: var(--green-light); }
+    .dropzone.loaded { border-style: solid; border-color: var(--green); background: var(--green-light); }
+    .dz-icon { font-size: 38px; margin-bottom: 10px; }
+    .dz-title { font-weight: 500; font-size: 16px; margin-bottom: 5px; }
+    .dz-sub { font-size: 13px; color: var(--text-light); }
+    .dz-filename { font-size: 14px; font-weight: 500; color: var(--green-dark); margin-top: 8px; }
+
+    .or-sep {
+      text-align: center; font-size: 13px; color: var(--text-light);
+      margin: 14px 0; position: relative;
+    }
+    .or-sep::before, .or-sep::after {
+      content: ''; position: absolute; top: 50%; width: 44%;
+      height: 1px; background: var(--border);
+    }
+    .or-sep::before { left: 0; }
+    .or-sep::after { right: 0; }
+
+    .demo-pill {
+      width: 100%; padding: 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 500;
+      color: var(--text-muted); cursor: pointer;
+      transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .demo-pill:hover { border-color: var(--green); color: var(--green); background: var(--green-light); }
+
+    /* ── Dual upload ── */
+    .dual-upload { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 520px) { .dual-upload { grid-template-columns: 1fr; } }
+    .dz-platform {
+      border: 2px dashed var(--border); border-radius: var(--radius-sm);
+      padding: 18px 12px; text-align: center; cursor: pointer;
+      transition: all 0.2s; background: var(--bg);
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+    .dz-platform:hover, .dz-platform.over { border-color: var(--green); background: var(--green-light); }
+    .dz-platform.loaded { border-color: var(--green); border-style: solid; background: var(--green-light); }
+    .dz-platform.loaded-tiktok { border-color: var(--purple); background: var(--purple-light); }
+    .dz-platform-icon { font-size: 26px; }
+    .dz-platform-name { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+    .dz-platform-status { font-size: 12px; color: var(--text-light); line-height: 1.4; }
+    .dz-platform.loaded .dz-platform-name { color: var(--green-dark); }
+    .dz-platform.loaded-tiktok .dz-platform-name { color: #5048a8; }
+    .dz-platform.loaded .dz-platform-status { color: var(--green-mid); font-weight: 500; }
+    .dz-platform.loaded-tiktok .dz-platform-status { color: #5048a8; font-weight: 500; }
+    .dual-source-badge {
+      margin-top: 8px; padding: 6px 12px; border-radius: 100px;
+      font-size: 12px; font-weight: 600; text-align: center;
+      background: linear-gradient(90deg, var(--green-light), var(--purple-light));
+      color: var(--text-muted); display: none;
+    }
+    .dual-source-badge.visible { display: block; }
+
+    /* ── Guide export modal ── */
+    .export-link {
+      font-size: 12px; color: var(--green); cursor: pointer;
+      text-decoration: underline; text-underline-offset: 3px;
+      background: none; border: none; padding: 0; font-family: inherit;
+    }
+    .export-link:hover { color: var(--green-dark); }
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 1000;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: white; border-radius: var(--radius); padding: 28px 28px 24px;
+      max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .modal-title {
+      font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700;
+      margin-bottom: 20px; color: var(--text);
+    }
+    .modal-platform {
+      font-size: 13px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--green); margin: 18px 0 10px;
+    }
+    .modal-steps { list-style: none; margin: 0; padding: 0; }
+    .modal-steps li {
+      display: flex; gap: 10px; align-items: flex-start;
+      font-size: 14px; line-height: 1.5; margin-bottom: 8px; color: var(--text);
+    }
+    .modal-steps li::before {
+      content: attr(data-n); min-width: 22px; height: 22px;
+      background: var(--green-light); color: var(--green-dark);
+      border-radius: 50%; font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+    }
+    .modal-warn {
+      background: #FFF8EC; border-left: 3px solid var(--amber);
+      border-radius: 6px; padding: 10px 12px;
+      font-size: 13px; color: #7a5000; margin-top: 14px; line-height: 1.5;
+    }
+    .modal-close {
+      margin-top: 20px; width: 100%; padding: 11px;
+      background: var(--green); color: white; border: none;
+      border-radius: var(--radius-sm); font-size: 14px; font-weight: 500;
+      cursor: pointer; font-family: inherit;
+    }
+    .modal-close:hover { background: var(--green-dark); }
+
+    .form-cta-btn {
+      width: 100%; padding: 16px; margin-top: 24px;
+      border-radius: var(--radius-sm);
+      font-size: 16px; font-weight: 500;
+      justify-content: center;
+    }
+
+    .rgpd { font-size: 12px; color: var(--text-light); text-align: center; line-height: 1.55; padding-top: 16px; }
+
+    /* ═══════════════════════════════════════════════
+       ÉCRAN 3 — ANALYSE EN COURS
+    ═══════════════════════════════════════════════ */
+    #screen-analysis {
+      background: var(--text);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 60px 24px;
+      text-align: center;
+    }
+
+    .orb-wrap { width: 160px; height: 160px; position: relative; margin-bottom: 48px; }
+    .orb {
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        var(--green-dark), var(--green), var(--purple), var(--amber), var(--green-dark)
+      );
+      animation: orb-spin 3s linear infinite;
+      box-shadow: 0 0 60px rgba(29,158,117,0.35), 0 0 120px rgba(29,158,117,0.15);
+    }
+    .orb-core {
+      position: absolute; inset: 10px;
+      background: var(--text); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 38px;
+    }
+    @keyframes orb-spin { to { transform: rotate(360deg); } }
+
+    .analysis-title { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+    .analysis-step-text { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 40px; }
+
+    .phrase-belt {
+      width: 100%; max-width: 480px; margin: 0 auto 32px;
+      height: 52px; overflow: hidden; position: relative;
+    }
+    .phrase-inner {
+      display: flex; flex-direction: column;
+      transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .phrase-item {
+      min-height: 52px; display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 0 8px;
+      font-size: 13px; font-style: italic;
+      color: rgba(255,255,255,0.42); line-height: 1.5;
+    }
+
+    .steps-list { width: 100%; max-width: 400px; margin: 0 auto 32px; }
+    .step-row { display: flex; align-items: center; gap: 14px; padding: 9px 0; }
+    .step-icon {
+      width: 34px; height: 34px;
+      border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+      transition: all 0.3s;
+    }
+    .step-row.done   .step-icon { background: var(--green); color: white; }
+    .step-row.active .step-icon {
+      background: rgba(29,158,117,0.15);
+      border: 2px solid var(--green); color: var(--green);
+      animation: step-pulse 1.8s ease infinite;
+    }
+    .step-row.pending .step-icon { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.25); }
+    @keyframes step-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(29,158,117,0.3); }
+      50% { box-shadow: 0 0 0 10px rgba(29,158,117,0); }
+    }
+    .step-label { font-size: 14px; text-align: left; }
+    .step-row.done   .step-label { color: rgba(255,255,255,0.65); }
+    .step-row.active .step-label { color: white; font-weight: 500; }
+    .step-row.pending .step-label { color: rgba(255,255,255,0.25); }
+
+    .progress-track { width: 100%; max-width: 400px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 100px; overflow: hidden; }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, var(--green), var(--purple)); border-radius: 100px; transition: width 0.6s ease; width: 0%; }
+
+    /* Écran d'erreur inline */
+    .error-state { max-width: 480px; margin: 0 auto; padding: 80px 24px; text-align: center; }
+    .error-state .icon { font-size: 52px; margin-bottom: 20px; }
+    .error-state h2 { font-size: 24px; margin-bottom: 10px; }
+    .error-state p { font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 28px; }
+    .error-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    /* ═══════════════════════════════════════════════
+       ÉCRAN 4 — RAPPORT
+    ═══════════════════════════════════════════════ */
+    #screen-report { background: var(--bg); }
+
+    .report-topbar {
+      background: var(--bg-card);
+      padding: 14px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 10;
+      gap: 12px;
+    }
+    .report-topbar-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    /* Hero rapport */
+    .report-hero {
+      background: var(--text); color: white;
+      padding: 64px 24px; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .report-hero-bg {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse at 25% 50%, rgba(29,158,117,0.12) 0%, transparent 55%),
+        radial-gradient(ellipse at 75% 50%, rgba(127,119,221,0.1) 0%, transparent 55%);
+      pointer-events: none;
+    }
+    .report-hero-inner { position: relative; z-index: 1; }
+
+    .rh-avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 800;
+      color: white; margin: 0 auto 16px;
+    }
+    .rh-badge {
+      display: inline-block;
+      background: rgba(29,158,117,0.2);
+      border: 1px solid rgba(29,158,117,0.4);
+      color: var(--green);
+      padding: 4px 16px; border-radius: 100px;
+      font-size: 13px; font-weight: 500; margin-bottom: 14px;
+    }
+    .rh-name { font-size: 40px; font-weight: 800; letter-spacing: -1px; margin-bottom: 5px; }
+    .rh-meta { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+    .rh-headline {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic; font-size: 22px;
+      color: rgba(255,255,255,0.82); line-height: 1.45;
+      max-width: 520px; margin: 0 auto;
+    }
+
+    /* Corps du rapport */
+    .report-body { max-width: 820px; margin: 0 auto; padding: 52px 24px; }
+
+    .section-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+    .report-section { margin-bottom: 52px; }
+
+    /* Nuage d'intérêts */
+    .tag-cloud { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .it { padding: 8px 16px; border-radius: 100px; font-weight: 500; display: inline-block; }
+    .it.lg { font-size: 18px; padding: 11px 22px; }
+    .it.md { font-size: 14px; }
+    .it.sm { font-size: 12px; padding: 6px 13px; }
+    .c-green  { background: var(--green-light);  color: var(--green-dark); }
+    .c-purple { background: var(--purple-light); color: #5048a8; }
+    .c-amber  { background: var(--amber-light);  color: #7a5000; }
+    .c-coral  { background: var(--coral-light);  color: #7a2a10; }
+
+    /* Insight */
+    .insight-block {
+      background: var(--text); border-radius: var(--radius);
+      padding: 36px; position: relative; overflow: hidden;
+    }
+    .insight-block::before {
+      content: '\201C';
+      position: absolute; top: -30px; left: 16px;
+      font-family: 'Instrument Serif', serif;
+      font-size: 180px; color: rgba(29,158,117,0.12); line-height: 1;
+      pointer-events: none;
+    }
+    .insight-eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--green); margin-bottom: 14px;
+    }
+    .insight-quote {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic; font-size: 20px;
+      color: rgba(255,255,255,0.88); line-height: 1.65;
+      position: relative; z-index: 1;
+    }
+
+    /* Traits */
+    .trait-item { margin-bottom: 18px; }
+    .trait-head { display: flex; justify-content: space-between; margin-bottom: 7px; }
+    .trait-name { font-size: 14px; font-weight: 500; }
+    .trait-pct  { font-size: 14px; font-weight: 700; }
+    .trait-track { height: 6px; background: var(--border); border-radius: 100px; overflow: hidden; }
+    .trait-fill  { height: 100%; border-radius: 100px; transition: width 1.1s cubic-bezier(0.4,0,0.2,1); width: 0; }
+
+    /* Métiers */
+    .jobs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .job-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px; transition: transform 0.2s;
+    }
+    .job-card:hover { transform: translateY(-3px); }
+    .job-card.top {
+      border-color: var(--green);
+      background: linear-gradient(145deg, var(--green-light), white 60%);
+      grid-column: 1 / -1;
+    }
+    .job-emoji { font-size: 34px; margin-bottom: 14px; }
+    .job-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    .job-name { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; }
+    .job-match {
+      background: var(--green); color: white;
+      padding: 3px 10px; border-radius: 100px;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .job-card:not(.top) .job-match { background: var(--text); }
+    .job-desc { font-size: 14px; color: var(--text-muted); line-height: 1.55; margin-bottom: 12px; }
+    .job-voie {
+      font-size: 12px; color: var(--green-dark); font-weight: 500;
+      padding: 6px 10px; background: var(--green-light);
+      border-radius: var(--radius-sm); margin-bottom: 12px; display: inline-block;
+    }
+    .job-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .job-tag {
+      padding: 3px 10px; border-radius: 100px; font-size: 12px; font-weight: 500;
+      background: var(--bg); color: var(--text-muted); border: 1px solid var(--border);
+    }
+    .job-card.top .job-tag { background: white; }
+
+    /* Environnements */
+    .envs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .env-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .env-emoji { font-size: 30px; }
+    .env-title { font-size: 15px; font-weight: 500; margin-bottom: 2px; }
+    .env-sub { font-size: 13px; color: var(--text-muted); }
+
+    /* Note conseiller */
+    .counselor-card {
+      background: var(--green-light);
+      border: 1.5px solid rgba(29,158,117,0.22);
+      border-radius: var(--radius); padding: 28px;
+    }
+    .counselor-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+    .counselor-ico {
+      width: 44px; height: 44px; background: var(--green); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+    }
+    .counselor-label { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; color: var(--green-dark); }
+    .counselor-sub { font-size: 12px; color: var(--green-mid); }
+    .counselor-text { font-size: 15px; color: var(--green-dark); line-height: 1.65; margin-bottom: 18px; }
+    .attention-box {
+      background: white; border-radius: var(--radius-sm);
+      padding: 16px 18px; border-left: 3px solid var(--amber);
+    }
+    .attention-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--amber); margin-bottom: 6px; }
+    .attention-text { font-size: 14px; color: var(--text-muted); line-height: 1.55; }
+
+    /* Export CTA */
+    .export-cta {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 36px; text-align: center;
+    }
+    .export-cta h3 { font-size: 22px; margin-bottom: 8px; }
+    .export-cta p { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }
+    .export-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    /* ═══════════════════════════════════════════════
+       COMPOSANTS V2 — schéma enrichi
+    ═══════════════════════════════════════════════ */
+    .signal-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 500;
+      color: var(--green-mid); background: var(--green-light);
+      padding: 3px 9px; border-radius: 100px; margin-top: 6px;
+    }
+    .question-pill {
+      background: rgba(0,0,0,0.04); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 14px;
+      font-size: 13px; color: var(--text-muted); font-style: italic;
+      margin-top: 10px; line-height: 1.5;
+    }
+    .question-pill::before { content: '💬 '; font-style: normal; }
+    .connu-badge {
+      display: inline-block;
+      background: var(--amber-light); color: #7a5000;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 7px; border-radius: 100px;
+      vertical-align: middle; margin-left: 6px;
+    }
+    .voies-list { margin: 10px 0 12px; }
+    .voie-item {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+    }
+    .voie-item:last-child { border-bottom: none; }
+    .voie-name  { font-weight: 500; margin-bottom: 2px; }
+    .voie-meta  { font-size: 12px; color: var(--text-muted); }
+    .voie-salary { color: var(--green); font-weight: 600; font-size: 12px; flex-shrink: 0; margin-left: 8px; }
+    .tension-badge { font-size: 11px; padding: 2px 8px; border-radius: 100px; font-weight: 500; display: inline-block; margin-bottom: 8px; }
+    .tension-forte   { background: var(--green-light);  color: var(--green-dark); }
+    .tension-correct { background: var(--amber-light);  color: #7a5000; }
+    .tension-faible  { background: var(--coral-light);  color: #7a2a10; }
+    .pourquoi-box {
+      background: var(--purple-light); border-radius: var(--radius-sm);
+      padding: 10px 14px; font-size: 13px; color: #5048a8;
+      margin: 10px 0; line-height: 1.55;
+    }
+    .pourquoi-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--purple); margin-bottom: 5px;
+    }
+    .meta-notice {
+      background: var(--amber-light); border: 1px solid rgba(239,159,39,0.22);
+      border-radius: var(--radius-sm); padding: 12px 16px;
+      font-size: 13px; color: #7a5000; display: flex; gap: 10px; align-items: flex-start;
+    }
+    .certitude-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 100px; }
+    .certitude-high { background: var(--green-light);  color: var(--green-dark); }
+    .certitude-med  { background: var(--amber-light);  color: #7a5000; }
+    .certitude-low  { background: var(--coral-light);  color: #7a2a10; }
+    .counselor-sub { margin-top: 20px; }
+    .counselor-sub-title {
+      font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px; color: var(--green-mid); margin-bottom: 10px;
+    }
+    .qa-list, .avoid-list { list-style: none; padding: 0; }
+    .qa-list li {
+      padding: 9px 12px; background: white; border-radius: var(--radius-sm);
+      font-size: 14px; color: var(--text-muted); margin-bottom: 6px;
+      border-left: 2px solid var(--green); font-style: italic; line-height: 1.5;
+    }
+    .avoid-list li {
+      padding: 9px 12px; background: white; border-radius: var(--radius-sm);
+      font-size: 14px; color: var(--text-muted); margin-bottom: 6px;
+      border-left: 2px solid var(--coral); line-height: 1.5;
+    }
+    .action-box {
+      background: var(--green); border-radius: var(--radius-sm);
+      padding: 14px 18px; font-size: 15px; font-weight: 500; color: white; line-height: 1.5;
+    }
+    .resource-item {
+      display: flex; align-items: center; gap: 10px; padding: 9px 0;
+      border-bottom: 1px solid rgba(29,158,117,0.15);
+      font-size: 13px; color: var(--green-dark);
+    }
+    .resource-item:last-child { border-bottom: none; }
+    .resource-type { background: rgba(29,158,117,0.14); color: var(--green-mid); padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+    .insight-question {
+      margin-top: 16px; padding: 12px 16px;
+      background: rgba(255,255,255,0.07); border-radius: var(--radius-sm);
+      font-size: 14px; color: rgba(255,255,255,0.65); font-style: italic; line-height: 1.5;
+    }
+    .insight-question::before { content: '💬 '; }
+    .score-explication { font-size: 12px; color: var(--text-light); margin-top: 6px; font-style: italic; line-height: 1.45; }
+    .counselor-insight-box {
+      background: white; border-left: 3px solid var(--purple);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      padding: 12px 16px; margin-bottom: 12px;
+    }
+    .counselor-insight-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--purple); margin-bottom: 5px; }
+    .counselor-insight-text { font-size: 14px; color: var(--text-muted); line-height: 1.55; }
+
+    /* ═══════════════════════════════════════════════
+       COMPOSANTS V3 — domaine, signaux qualitatifs
+    ═══════════════════════════════════════════════ */
+    .domaine-card {
+      background: var(--text); color: white;
+      border-radius: var(--radius); padding: 36px;
+      position: relative; overflow: hidden;
+    }
+    .domaine-card::after {
+      content: ''; position: absolute; pointer-events: none;
+      width: 420px; height: 420px; top: -160px; right: -120px;
+      background: radial-gradient(circle, rgba(29,158,117,0.22) 0%, transparent 65%);
+    }
+    .domaine-eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--green); margin-bottom: 12px;
+    }
+    .domaine-nom {
+      font-family: 'Instrument Serif', serif; font-style: italic;
+      font-size: 40px; line-height: 1.1; margin-bottom: 10px;
+      position: relative; z-index: 1;
+    }
+    .domaine-phrase { font-size: 15px; color: rgba(255,255,255,0.7); line-height: 1.6; max-width: 560px; margin-bottom: 18px; }
+    .preuves-list { position: relative; z-index: 1; }
+    .preuve-item {
+      display: flex; gap: 8px; align-items: flex-start;
+      font-size: 13px; color: rgba(255,255,255,0.75);
+      padding: 6px 0; line-height: 1.5;
+    }
+    .preuve-item::before { content: '📊'; flex-shrink: 0; }
+    .domaine-secondaires { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; position: relative; z-index: 1; }
+    .domaine-sec-pill {
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 100px; padding: 7px 16px; font-size: 13px; color: rgba(255,255,255,0.85);
+    }
+    .facettes-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; position: relative; z-index: 1; }
+    .facette-pill {
+      background: rgba(29,158,117,0.18); border: 1px solid rgba(29,158,117,0.4);
+      color: var(--green); border-radius: 100px; padding: 6px 14px;
+      font-size: 13px; font-weight: 500;
+    }
+    .niveau-signal {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+      padding: 3px 10px; border-radius: 100px; text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .sig-fort   { background: var(--green-light);  color: var(--green-dark); }
+    .sig-moyen  { background: var(--amber-light);  color: #7a5000; }
+    .sig-faible { background: rgba(0,0,0,0.05);    color: var(--text-light); }
+    .fenetre-badge {
+      display: inline-block;
+      background: var(--purple); color: white;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+      padding: 3px 9px; border-radius: 100px;
+      vertical-align: middle; margin-left: 6px; text-transform: uppercase;
+    }
+    .hyp-type {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.8px; text-transform: uppercase;
+      color: var(--text-light); margin-bottom: 4px;
+    }
+    .hyp-row {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px 20px; margin-bottom: 12px;
+    }
+    .hyp-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .hypotheses-note, .pistes-note {
+      font-size: 13px; color: var(--text-light); font-style: italic;
+      margin: -10px 0 18px; line-height: 1.5;
+    }
+    .chips-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .chip-suggest {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 100px; padding: 6px 14px; font-size: 13px;
+      color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .chip-suggest:hover { border-color: var(--green); color: var(--green-dark); background: var(--green-light); }
+    .angles-morts-box {
+      background: white; border-left: 3px solid var(--purple);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      padding: 12px 16px; margin-top: 12px;
+    }
+    .angles-morts-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--purple); margin-bottom: 5px; }
+    .angles-morts-text { font-size: 14px; color: var(--text-muted); line-height: 1.55; }
+
+    /* ═══════════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════════ */
+    @media (max-width: 640px) {
+      .hero-nav    { padding: 16px 20px; }
+      .stats-bar   { flex-direction: column; }
+      .stat-item   { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); max-width: none; }
+      .stat-item:last-child { border-bottom: none; }
+      .form-topbar { padding: 16px 20px; }
+      .form-wrap   { padding: 24px 16px; }
+      .form-row    { grid-template-columns: 1fr; }
+      .report-topbar { padding: 12px 16px; }
+      .report-topbar-actions .btn { padding: 8px 14px; font-size: 12px; }
+      .report-body { padding: 28px 16px; }
+      .domaine-nom { font-size: 30px; }
+      .jobs-grid   { grid-template-columns: 1fr; }
+      .job-card.top { grid-column: 1; }
+      .envs-grid   { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     ÉCRAN 1 — ACCUEIL
+════════════════════════════════════════════════════ -->
+<div id="screen-home" class="screen active">
+  <div class="hero-g1"></div>
+  <div class="hero-g2"></div>
+
+  <nav class="hero-nav">
+    <div class="logo-mark">Find<span class="accent">Yourself</span></div>
+    <button class="btn btn-ghost" onclick="showScreen('form')" style="padding:10px 22px;font-size:14px;">
+      Commencer →
+    </button>
+  </nav>
+
+  <div class="hero-content">
+    <p class="hero-badge">✦ Outil d'orientation nouvelle génération</p>
+    <h1 class="hero-title">
+      L'orientation qui<br>
+      <em>te connaît déjà</em>
+    </h1>
+    <p class="hero-sub">
+      Tes données TikTok et Instagram révèlent ton domaine — l'univers qui te passionne
+      vraiment. En 3 minutes, découvre des portes d'entrée concrètes vers ce domaine,
+      basées sur ce que tu fais, pas sur ce qu'on te demande de faire.
+    </p>
+    <div class="hero-ctas">
+      <button class="btn btn-primary" onclick="showScreen('form')">Commencer l'analyse</button>
+      <button class="btn btn-ghost" onclick="launchDemo()">Voir la démo</button>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-number">4h</div>
+      <div class="stat-label">par jour sur le téléphone</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">87%</div>
+      <div class="stat-label">choisissent sans info réelle</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">3 min</div>
+      <div class="stat-label">pour un profil complet</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     ÉCRAN 2 — FORMULAIRE & UPLOAD
+════════════════════════════════════════════════════ -->
+<div id="screen-form" class="screen">
+  <div class="form-topbar">
+    <div class="logo-mark" style="color:white;">Find<span style="color:var(--green)">Yourself</span></div>
+    <button class="back-btn" onclick="showScreen('home')">← Retour</button>
+  </div>
+
+  <div class="form-wrap">
+
+    <!-- Clé API (masquée quand un backend proxy est configuré) -->
+    <div class="api-card" id="api-card">
+      <div class="card-title">🔑 Clé API Anthropic</div>
+      <input
+        type="password"
+        class="fi"
+        id="api-key"
+        placeholder="sk-ant-api03-…"
+        autocomplete="off"
+        oninput="checkForm()"
+      >
+      <p class="api-hint">
+        Nécessaire pour l'analyse IA.
+        <a href="https://console.anthropic.com" target="_blank" rel="noopener">Obtenir une clé →</a>
+      </p>
+    </div>
+
+    <!-- Code d'accès conseiller (mode production / proxy) -->
+    <div class="api-card" id="access-card" style="display:none">
+      <div class="card-title">🔒 Code d'accès conseiller</div>
+      <input
+        type="password"
+        class="fi"
+        id="access-code"
+        placeholder="Code fourni par ton administrateur"
+        autocomplete="off"
+        oninput="checkForm()"
+      >
+      <p class="api-hint">
+        Réservé aux conseillers partenaires. Laisse vide si aucun code ne t'a été communiqué.
+      </p>
+    </div>
+
+    <!-- Contexte jeune -->
+    <div class="card">
+      <div class="card-title">Parle-nous de toi</div>
+
+      <div class="form-row">
+        <div class="fg">
+          <label>Prénom *</label>
+          <input type="text" class="fi" id="f-prenom" placeholder="Ton prénom" oninput="checkForm()">
+        </div>
+        <div class="fg">
+          <label>Âge *</label>
+          <select class="fs" id="f-age" onchange="checkForm()">
+            <option value="">Sélectionne ton âge</option>
+            <option>14</option><option>15</option><option>16</option><option>17</option>
+            <option>18</option><option>19</option><option>20</option><option>21</option>
+            <option>22</option><option>23</option><option>24</option><option>25</option>
+            <option>26</option><option>27</option><option>28</option><option>29</option>
+            <option>30</option><option>31</option><option>32</option><option>33</option>
+            <option>34</option><option>35</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Où en es-tu dans ta formation ? *</label>
+        <select class="fs" id="f-situation" onchange="updatePrecisionField(); checkForm()">
+          <option value="">Sélectionne ta situation</option>
+          <option value="college">Collège</option>
+          <option value="segpa">Collège — SEGPA</option>
+          <option value="lycee_general">Lycée général</option>
+          <option value="lycee_techno">Lycée technologique</option>
+          <option value="bac_pro">Bac professionnel</option>
+          <option value="cap">CAP</option>
+          <option value="etudes_sup">Études supérieures</option>
+          <option value="adulte_en_poste">Adulte en poste (reconversion)</option>
+          <option value="adulte_recherche">Adulte en recherche d'emploi</option>
+        </select>
+      </div>
+
+      <div class="fg" id="fg-precision" style="display:none">
+        <label id="label-precision">Précise</label>
+        <input type="text" class="fi" id="f-precision" placeholder="">
+      </div>
+
+      <div class="fg">
+        <label>Ce que tu aimes faire dans la vie</label>
+        <textarea
+          class="ft tall" id="f-aime"
+          placeholder="Créer des trucs, jouer à des jeux, cuisiner, réparer des objets, faire du sport… Dis-le avec tes mots."
+          oninput="checkForm()"
+        ></textarea>
+      </div>
+
+      <div class="fg">
+        <label>Ce que tu n'aimes vraiment pas faire</label>
+        <textarea
+          class="ft" id="f-dislike"
+          placeholder="Rester assis des heures, les tâches répétitives, le travail en solitaire complet…"
+          oninput="checkForm()"
+        ></textarea>
+      </div>
+
+      <div class="fg" style="margin-bottom:0">
+        <label>Quelles sont tes compétences, selon toi ?</label>
+        <textarea
+          class="ft" id="f-competences"
+          placeholder="Ce que tu sais faire, ce qu'on te reconnaît, ce que tu as appris tout seul… Il n'y a pas de mauvaise réponse."
+        ></textarea>
+        <div class="chips-wrap" id="competence-chips">
+          <button type="button" class="chip-suggest" onclick="addCompetence(this)">Bricoler / réparer</button>
+          <button type="button" class="chip-suggest" onclick="addCompetence(this)">Créer / dessiner</button>
+          <button type="button" class="chip-suggest" onclick="addCompetence(this)">Expliquer aux autres</button>
+          <button type="button" class="chip-suggest" onclick="addCompetence(this)">Organiser</button>
+          <button type="button" class="chip-suggest" onclick="addCompetence(this)">Convaincre / vendre</button>
+          <button type="button" class="chip-suggest" onclick="addCompetence(this)">M'occuper des autres</button>
+          <button type="button" class="chip-suggest" onclick="addCompetence(this)">Apprendre tout seul</button>
+          <button type="button" class="chip-suggest" onclick="addCompetence(this)">Cuisiner</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal guide export -->
+    <div class="modal-backdrop" id="export-modal" onclick="if(event.target===this)closeExportModal()">
+      <div class="modal">
+        <div class="modal-title">📤 Comment exporter tes données</div>
+
+        <div class="modal-platform">TikTok</div>
+        <ol class="modal-steps">
+          <li data-n="1">Ouvre TikTok → <strong>Profil</strong> → icône ⋮ en haut à droite</li>
+          <li data-n="2">Paramètres → <strong>Confidentialité</strong> → Télécharger tes données</li>
+          <li data-n="3">Sélectionne <strong>"Toutes les données"</strong> et le format <strong>JSON</strong> (pas TXT)</li>
+          <li data-n="4">Clique sur <strong>"Demander des données"</strong> — délai : 3 à 7 jours</li>
+          <li data-n="5">Tu reçois un e-mail avec un lien de téléchargement → télécharge le <strong>.zip</strong></li>
+          <li data-n="6">Dépose le <strong>.zip directement</strong> dans l'app (pas besoin de décompresser)</li>
+        </ol>
+
+        <div class="modal-platform" style="margin-top:22px">Instagram</div>
+        <ol class="modal-steps">
+          <li data-n="1">Ouvre Instagram → <strong>Profil</strong> → ≡ → <strong>Paramètres et activité</strong></li>
+          <li data-n="2">Ton activité → <strong>Télécharger tes informations</strong></li>
+          <li data-n="3">Sélectionne <strong>"Certaines de tes informations"</strong> et coche au minimum :<br>Activités (likes, vues), Connexions (abonnements), Recherches</li>
+          <li data-n="4">Format : <strong>JSON</strong> — Période : choisir la plus longue disponible</li>
+          <li data-n="5">Clique <strong>"Créer les fichiers"</strong> — délai : quelques minutes à 48h</li>
+          <li data-n="6">Télécharge le <strong>.zip</strong> reçu par e-mail et dépose-le dans l'app</li>
+        </ol>
+
+        <div class="modal-warn">
+          ⚠ <strong>Format JSON obligatoire.</strong> Si tu sélectionnes HTML, les données ne pourront pas être analysées. Sur Instagram, vérifie bien que "JSON" est coché avant de valider.
+        </div>
+
+        <button class="modal-close" onclick="closeExportModal()">Compris ✓</button>
+      </div>
+    </div>
+
+    <!-- Upload fichier — double zone -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="card-title" style="margin-bottom:0">Tes données <span style="font-weight:400;color:var(--text-muted)">(optionnel, recommandé)</span></div>
+        <button class="export-link" onclick="openExportModal()">Comment exporter ?</button>
+      </div>
+
+      <div class="dual-upload">
+        <!-- Zone Instagram -->
+        <div class="dz-platform" id="dz-insta"
+          onclick="document.getElementById('file-insta').click()"
+          ondragover="dzOver(event,'insta')" ondragleave="dzLeave('insta')" ondrop="dzDrop(event,'insta')">
+          <input type="file" id="file-insta" accept=".json,.zip" style="display:none" onchange="dzSelect(event,'insta')">
+          <div class="dz-platform-icon">📷</div>
+          <div class="dz-platform-name">Instagram</div>
+          <div class="dz-platform-status" id="dz-insta-status">Glisse ou clique</div>
+        </div>
+        <!-- Zone TikTok -->
+        <div class="dz-platform" id="dz-tiktok"
+          onclick="document.getElementById('file-tiktok').click()"
+          ondragover="dzOver(event,'tiktok')" ondragleave="dzLeave('tiktok')" ondrop="dzDrop(event,'tiktok')">
+          <input type="file" id="file-tiktok" accept=".json,.zip" style="display:none" onchange="dzSelect(event,'tiktok')">
+          <div class="dz-platform-icon">🎵</div>
+          <div class="dz-platform-name">TikTok</div>
+          <div class="dz-platform-status" id="dz-tiktok-status">Glisse ou clique</div>
+        </div>
+      </div>
+
+      <div class="dual-source-badge" id="dual-badge">✦ Données Instagram + TikTok combinées</div>
+
+      <div class="or-sep">ou</div>
+
+      <button class="demo-pill" onclick="loadDemoData()">
+        🎭 Utiliser les données de démo (Tony, 16 ans)
+      </button>
+    </div>
+
+    <!-- Consentement RGPD (EJ-2) -->
+    <div class="card" id="consent-card" style="border-color:rgba(29,158,117,0.35)">
+      <div class="card-title">Avant de lancer l'analyse</div>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:14px">
+        Tes données comportementales sont lues <strong>dans ton navigateur</strong> ; seuls des signaux
+        résumés (thèmes, comptes, recherches) sont envoyés à l'IA d'Anthropic pour générer le rapport.
+        <strong>Aucune donnée n'est conservée</strong> après la session. Le rapport est fait de
+        <strong>pistes à discuter avec un conseiller</strong>, jamais de verdicts — tu peux les contester ou les ignorer.
+        <a href="#" onclick="return false" style="color:var(--green)">En savoir plus sur la confidentialité</a>.
+      </p>
+      <label style="display:flex;gap:10px;align-items:flex-start;font-size:14px;cursor:pointer">
+        <input type="checkbox" id="consent-main" onchange="checkForm()" style="margin-top:3px;flex-shrink:0">
+        <span>J'ai compris et j'accepte que mes données soient analysées pour générer ce rapport d'orientation.</span>
+      </label>
+      <label id="consent-parent-wrap" style="display:none;gap:10px;align-items:flex-start;font-size:14px;cursor:pointer;margin-top:12px">
+        <input type="checkbox" id="consent-parent" onchange="checkForm()" style="margin-top:3px;flex-shrink:0">
+        <span>Je suis mineur(e) : un parent ou responsable légal a donné son accord (requis avant 15 ans).</span>
+      </label>
+    </div>
+
+    <!-- Bouton lancer -->
+    <button class="btn btn-primary form-cta-btn" id="launch-btn" onclick="runAnalysis()" disabled>
+      Analyser mon profil →
+    </button>
+
+    <p class="rgpd">
+      🔒 Aucune donnée stockée sur nos serveurs. L'analyse se fait en local et via l'API Anthropic.
+      Tes informations ne sont pas conservées après la session.<br>
+      ✦ Le rapport est généré par une IA : ce sont des hypothèses à discuter avec un conseiller,
+      pas des verdicts. Tu restes libre de les contester ou de les ignorer.
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     ÉCRAN 3 — ANALYSE EN COURS
+════════════════════════════════════════════════════ -->
+<div id="screen-analysis" class="screen">
+  <div class="orb-wrap">
+    <div class="orb"></div>
+    <div class="orb-core">🔍</div>
+  </div>
+
+  <h2 class="analysis-title">Analyse en cours…</h2>
+  <p class="analysis-step-text" id="step-text">Initialisation</p>
+
+  <div class="phrase-belt" id="phrase-belt">
+    <div class="phrase-inner" id="phrase-inner">
+      <div class="phrase-item" id="phrase-current"></div>
+      <div class="phrase-item" id="phrase-next"></div>
+    </div>
+  </div>
+
+  <div class="steps-list">
+    <div class="step-row pending" id="step-1">
+      <div class="step-icon">1</div>
+      <span class="step-label">Lecture des données</span>
+    </div>
+    <div class="step-row pending" id="step-2">
+      <div class="step-icon">2</div>
+      <span class="step-label">Extraction des centres d'intérêt</span>
+    </div>
+    <div class="step-row pending" id="step-3">
+      <div class="step-icon">3</div>
+      <span class="step-label">Analyse du profil comportemental</span>
+    </div>
+    <div class="step-row pending" id="step-4">
+      <div class="step-icon">4</div>
+      <span class="step-label">Génération du rapport IA</span>
+    </div>
+    <div class="step-row pending" id="step-5">
+      <div class="step-icon">5</div>
+      <span class="step-label">Croisement avec le référentiel domaines / métiers</span>
+    </div>
+  </div>
+
+  <div class="progress-track">
+    <div class="progress-bar" id="pbar"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     ÉCRAN 4 — RAPPORT
+════════════════════════════════════════════════════ -->
+<div id="screen-report" class="screen">
+
+  <nav class="report-topbar">
+    <div class="logo-mark">Find<span style="color:var(--green)">Yourself</span></div>
+    <div class="report-topbar-actions">
+      <button class="btn btn-outline" onclick="showScreen('form')" style="padding:9px 18px;font-size:13px;">Nouvelle analyse</button>
+      <button class="btn btn-primary" onclick="exportHTML()" style="padding:9px 18px;font-size:13px;">📄 Exporter le rapport</button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="report-hero">
+    <div class="report-hero-bg"></div>
+    <div class="report-hero-inner">
+      <div class="rh-avatar" id="rh-avatar">J</div>
+      <div class="rh-badge" id="rh-badge">–</div>
+      <h1 class="rh-name" id="rh-name">–</h1>
+      <p class="rh-meta" id="rh-meta">–</p>
+      <p class="rh-headline" id="rh-headline">–</p>
+    </div>
+  </div>
+
+  <!-- Bannière méta (certitude faible ou cas sensible) -->
+  <div id="report-disclaimer" style="display:none; max-width:820px; margin:16px auto 0; padding:0 24px">
+    <div class="meta-notice">
+      <span>⚠️</span>
+      <span id="disclaimer-text">–</span>
+    </div>
+  </div>
+
+  <!-- Corps -->
+  <div class="report-body">
+
+    <!-- Domaine -->
+    <div class="report-section">
+      <h2 class="section-title">Ton domaine</h2>
+      <div id="domaine-block"></div>
+    </div>
+
+    <!-- Intérêts -->
+    <div class="report-section">
+      <h2 class="section-title">Tes centres d'intérêt</h2>
+      <div class="tag-cloud" id="tag-cloud"></div>
+    </div>
+
+    <!-- Insight -->
+    <div class="report-section">
+      <div class="insight-block">
+        <div class="insight-eyebrow">✦ Insight IA</div>
+        <p class="insight-quote" id="insight-quote">–</p>
+        <div class="insight-question" id="insight-question" style="display:none">–</div>
+      </div>
+    </div>
+
+    <!-- Hypothèses -->
+    <div class="report-section">
+      <h2 class="section-title">Ce qu'on observe chez toi</h2>
+      <p class="hypotheses-note">Des hypothèses tirées de tes données — pas des vérités. À discuter, confirmer ou contredire en entretien.</p>
+      <div id="traits-list"></div>
+    </div>
+
+    <!-- Portes d'entrée -->
+    <div class="report-section">
+      <h2 class="section-title">Des portes d'entrée vers ton domaine</h2>
+      <p class="pistes-note">Des pistes à explorer ensemble, pas des destinations définitives. Celles marquées <strong>Fenêtre</strong> sont des métiers que tu n'as probablement jamais croisés — c'est voulu.</p>
+      <div class="jobs-grid" id="jobs-grid"></div>
+    </div>
+
+    <!-- Environnements -->
+    <div class="report-section">
+      <h2 class="section-title">Environnements de travail</h2>
+      <div class="envs-grid" id="envs-grid"></div>
+    </div>
+
+    <!-- Note conseiller -->
+    <div class="report-section">
+      <div class="counselor-card">
+        <div class="counselor-head">
+          <div class="counselor-ico">👤</div>
+          <div>
+            <div class="counselor-label">Note pour le conseiller</div>
+            <div class="counselor-sub">Usage professionnel uniquement</div>
+          </div>
+          <div id="certitude-badge" style="margin-left:auto"></div>
+        </div>
+
+        <!-- Lecture globale du profil -->
+        <p class="counselor-text" id="counselor-lecture">–</p>
+
+        <!-- Lecture analytique de l'insight (texte_conseiller) -->
+        <div id="counselor-insight-box" class="counselor-insight-box" style="display:none">
+          <div class="counselor-insight-label">🔍 Lecture analytique</div>
+          <p class="counselor-insight-text" id="counselor-insight-text">–</p>
+        </div>
+
+        <!-- Angles morts du feed + inférences risquées (garde-fous) -->
+        <div id="counselor-gardefous" style="display:none"></div>
+
+        <!-- Points d'attention (cas sensibles) -->
+        <div id="counselor-attention" class="counselor-sub" style="display:none"></div>
+
+        <!-- Questions à poser -->
+        <div class="counselor-sub">
+          <div class="counselor-sub-title">Questions à poser en entretien</div>
+          <ul class="qa-list" id="counselor-questions"></ul>
+        </div>
+
+        <!-- À ne pas faire -->
+        <div class="counselor-sub">
+          <div class="counselor-sub-title">À éviter avec ce profil</div>
+          <ul class="avoid-list" id="counselor-avoid"></ul>
+        </div>
+
+        <!-- Conseil actionnable prioritaire -->
+        <div class="counselor-sub">
+          <div class="counselor-sub-title">Action prioritaire</div>
+          <div class="action-box" id="counselor-action">–</div>
+        </div>
+
+        <!-- Ressources à suggérer -->
+        <div class="counselor-sub" id="counselor-resources-wrap" style="display:none">
+          <div class="counselor-sub-title">Ressources à suggérer</div>
+          <div id="counselor-resources"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export CTA -->
+    <div class="export-cta">
+      <h3>Partager ce rapport</h3>
+      <p>Génère un document confidentiel imprimable pour le conseiller d'orientation.</p>
+      <div class="export-btns">
+        <button class="btn btn-primary" onclick="exportHTML()">📄 Télécharger le rapport HTML</button>
+        <button class="btn btn-outline" onclick="window.print()">🖨️ Imprimer</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════ -->
+<script>
+/* ─── Configuration ─────────────────────────────────────────── */
+
+const CLAUDE_MODEL   = 'claude-sonnet-5';
+const API_ENDPOINT   = 'https://api.anthropic.com/v1/messages';
+const API_TIMEOUT_MS = 120000;
+const PREFILLED_KEY  = ''; // pré-remplir pour usage pilote interne
+
+/* ─── Mode d'appel à l'IA ────────────────────────────────────────
+   USE_PROXY = true  → PRODUCTION : l'app appelle la fonction proxy
+     (même domaine, /api/analyze). La clé API reste côté serveur.
+     C'est le mode utilisé une fois le site publié sur Netlify.
+   USE_PROXY = false → PILOTE LOCAL : appel direct à l'API Anthropic
+     avec une clé saisie dans le navigateur (usage interne uniquement).
+   Pour tester en local avec le proxy : `netlify dev` puis garder true. */
+const USE_PROXY      = true;
+const PROXY_ENDPOINT = '/api/analyze';   // relatif = même domaine que le site
+const USE_BACKEND    = () => USE_PROXY;
+
+/* ─── System Prompt (fixe, envoyé séparément) ───────────────── */
+/* ─── Référentiel condensé pour le prompt ───────────────────── */
+function condenserReferentiel() {
+  const R = window.REFERENTIEL;
+  if (!R) return '(Référentiel non chargé — raisonne avec la grille RIASEC et les principes ci-dessus, en nommant toujours un domaine précis dans le vocabulaire de la personne.)';
+  const regles = R.regles_moteur.map((r, i) => `${i + 1}. ${r}`).join('\n');
+  const facettes = R.facettes.map(f => `- ${f.verbe} (${f.riasec.join('-')}) : ${f.description}`).join('\n');
+  const univers = R.univers.map(u => {
+    const dom    = u.domaines_precis.map(d => d.label).join(' · ');
+    const portes = u.portes_entree.map(p => `${p.metier} (${p.voie_acces})`).join(' | ');
+    const farf   = u.porte_farfelue
+      ? `\n  Porte farfelue : ${u.porte_farfelue.metier} — ${u.porte_farfelue.description} Voie : ${u.porte_farfelue.voie_acces}`
+      : '';
+    return `UNIVERS ${u.id} — ${u.nom} [ROME ${u.rome_familles.join(', ')} · RIASEC ${u.riasec_dominant.join('-')}]
+  Domaines précis : ${dom}
+  Portes d'entrée : ${portes}${farf}`;
+  }).join('\n\n');
+  return `RÈGLES DU MOTEUR (issues du référentiel v${R.meta?.version || '1.1'}) :
+${regles}
+
+LES 14 FACETTES — verbes transversaux, croisables avec tous les domaines (correspondance RIASEC entre parenthèses) :
+${facettes}
+
+LES 14 UNIVERS — niveau 0, usage interne uniquement : ne JAMAIS afficher un univers comme résultat. Le résultat est toujours un domaine précis (niveau 1), dans le vocabulaire exact de la personne.
+
+${univers}`;
+}
+
+/* ─── Bloc CPF injecté pour le parcours adulte ──────────────── */
+function condenserCPF() {
+  const C = window.REFERENTIEL_CPF;
+  if (!C) return '';
+  const lignes = C.formations.map(f =>
+    `- [Univers ${f.univers} · ${f.domaine}] ${f.intitule} — niveau ${f.niveau}, ~${f.duree_indicative}${f.vae_possible ? ', VAE possible' : ''}`
+  ).join('\n');
+  return `\n\n═══ FORMATIONS ÉLIGIBLES CPF (parcours adulte en reconversion) ═══
+La personne est un ADULTE : privilégie ces certifications finançables par le CPF pour les voies d'accès (champ "eligible_cpf": true), mentionne la VAE quand elle est possible, et tiens compte de l'expérience professionnelle. Codes RNCP à vérifier avant production.
+${lignes}`;
+}
+
+function buildSystemPrompt(isAdulte) {
+  return `Tu es un conseiller d'orientation professionnelle avec 15 ans d'expérience en Missions Locales et lycées professionnels, formé aux cadres théoriques de référence de l'orientation : le modèle RIASEC de Holland (adéquation personne-environnement), la théorie du développement de carrière de Super, la théorie sociale cognitive de carrière de Lent, et la démarche ADVP. Tu as accompagné des milliers de personnes de 14 à 25 ans et des adultes en reconversion, notamment des profils en difficulté scolaire, des décrocheurs et des profils atypiques que l'école n'a pas su lire.
+
+Ta méthode : tu ne demandes pas aux gens ce qu'ils veulent faire — tu observes ce qu'ils font déjà. Le comportement numérique est un signal riche parce qu'il est non-déclaratif. Mais tu en connais aussi les limites, et tu les respectes scrupuleusement (voir garde-fous).
+
+TON RÔLE ICI :
+Analyser les données comportementales et déclaratives d'une personne pour produire un rapport d'orientation utilisé EN ENTRETIEN, lu ensemble par le conseiller et la personne. Chaque élément doit pouvoir être dit à voix haute dans cette situation sans créer de malaise.
+
+═══ LA MÉTHODE : LE DOMAINE AVANT LE MÉTIER ═══
+1. Identifie d'abord le DOMAINE : l'univers qui passionne réellement la personne, détecté dans ses données. Nomme-le avec le mot exact qu'elle utiliserait elle-même ("la moto", pas "la mobilité" ; "la pâtisserie", pas "la cuisine" si les données disent pâtisserie). C'est cette granularité qui déclenche le "ils m'ont compris".
+2. Identifie ensuite les FACETTES : ce qu'elle aime FAIRE dans ce domaine, exprimé en verbes (voir la liste du référentiel). Deux passionnés du même domaine avec des facettes différentes reçoivent des portes différentes.
+3. Propose enfin des PORTES D'ENTRÉE : des métiers issus du croisement domaine × facettes × situation de formation. Ce sont des pistes à explorer, JAMAIS des destinations définitives.
+
+═══ POSTURE : HYPOTHÈSES, JAMAIS VERDICTS ═══
+Ce rapport ne produit AUCUN score chiffré, AUCUN pourcentage. Ce ne sont pas des mesures psychométriques validées et les présenter comme telles serait malhonnête. À la place :
+- Des niveaux qualitatifs : "fort", "moyen", "faible" — toujours accompagnés de la PREUVE comportementale qui les justifie (comptes suivis, recherches, volumes, horaires). Jamais d'affirmation sans preuve.
+- Des formulations d'hypothèse : "ce qu'on observe → ce que ça pourrait vouloir dire → à explorer ensemble".
+- Des questions de conversation pour que le conseiller et la personne puissent confirmer, nuancer ou contredire.
+
+═══ RÈGLES D'INTERPRÉTATION ═══
+
+R1 — SIGNAUX vs DÉCLARATIF
+Le comportement numérique prime sur le déclaratif quand ils divergent — mais le gap lui-même est l'information la plus intéressante : fais-le ressortir comme matière à conversation. Croise aussi l'auto-évaluation des compétences de la personne avec ce que révèlent ses données : les écarts (compétence revendiquée sans trace, ou compétence visible qu'elle ne se reconnaît pas) sont précieux en entretien.
+
+R2 — PATTERNS NOCTURNES
+Les recherches et visionnages entre 22h et 2h sont des signaux forts : c'est là que la personne consomme ce qui l'intéresse vraiment, sans pression sociale. Pondère-les 2x plus fort.
+
+R3 — RÉPÉTITION = INTÉRÊT STRUCTURANT
+Un sujet qui revient dans les recherches, les comptes suivis ET les contenus regardés = intérêt structurant. Un sujet qui n'apparaît qu'une fois = signal faible, ne pas surpondérer.
+
+R4 — DISTINGUER INTÉRÊT / APTITUDE / ADÉQUATION
+Regarder des vidéos de mécanique prouve un INTÉRÊT. Ça ne prouve NI une aptitude, NI que la personne s'épanouirait dans ce métier. Chaque hypothèse du rapport est étiquetée : "intérêt observé" (prouvé par les données), "aptitude à vérifier" (supposée, à tester en entretien ou en immersion), ou "adéquation à explorer" (l'hypothèse la plus fragile). Ne franchis JAMAIS silencieusement la frontière entre les trois.
+
+R5 — ACCESSIBILITÉ RÉELLE, AMBITION INTACTE
+Chaque porte d'entrée a une voie d'accès réaliste depuis la situation de formation déclarée (passerelles, prérequis, durées). La situation adapte les VOIES, jamais l'ambition : un profil SEGPA passionné d'aéronautique reçoit la voie CAP aéro → MC → évolution, pas un domaine au rabais. Ne présente jamais les voies courtes (CAP, Bac Pro, BTS) comme inférieures.
+Pour un ADULTE EN RECONVERSION : privilégie les formations certifiantes éligibles CPF (RNCP), mentionne l'éligibilité CPF dans les voies d'accès, et tiens compte de l'expérience professionnelle acquise (VAE possible).
+
+R6 — LANGUE DU RAPPORT
+Tout ce qui sera lu avec la personne doit être : direct, sans condescendance ni jargon psy ; surprenant (pas une reformulation de ce qu'elle sait déjà) ; ancré dans ses références réelles ; jamais moralisateur ni anxiogène.
+
+R7 — DÉTECTION DES CAS SENSIBLES
+Si tu détectes des signaux de détresse, d'anxiété ou de décrochage, adapte le ton et génère des alertes spécifiques dans la section conseiller. Ne les mets JAMAIS dans la partie lue par la personne.
+GRILLE : DÉCROCHAGE = déclaratif négatif sur l'école + absence de tout signal d'apprentissage autonome. PROFIL ANXIEUX/BLOQUÉ = intérêts très larges et contradictoires, recherches d'orientation compulsives, déclaratif focalisé sur les peurs. DONNÉES INSUFFISANTES = le dire dans niveau_certitude et n'affirmer que ce que les données permettent.
+
+R8 — QUESTIONS DE CONVERSATION
+Pour chaque hypothèse et chaque piste métier, génère 1 question ouverte, non-jugeante, ancrée dans les éléments du rapport, que le conseiller peut poser pour créer du dialogue.
+
+═══ GARDE-FOUS ANTI-BIAIS (aussi importants que les règles) ═══
+
+GF1 — LE FEED N'EST PAS LA PERSONNE
+Ce que la personne voit est massivement déterminé par l'algorithme de la plateforme. Tu analyses en partie le modèle que TikTok/Instagram a d'elle, pas elle. Garde cette limite en tête, mentionne-la dans note_methodologique, et ne traite jamais une absence dans le feed comme une absence d'intérêt.
+
+GF2 — LA FENÊTRE, PAS LE MIROIR
+Ton travail n'est PAS d'amplifier ce que le feed montre déjà — ce serait enfermer la personne dans sa bulle. Identifie activement les ANGLES MORTS : les domaines et métiers cohérents avec ses facettes et son profil RIASEC mais totalement absents de son feed. Parmi les 4 pistes, AU MOINS UNE doit être marquée "fenetre": true — un métier qu'elle n'a probablement jamais croisé, avec l'explication de pourquoi tu le proposes quand même. Décris les angles morts détectés dans conseiller.angles_morts.
+
+GF3 — REPRODUCTION SOCIALE ET BIAIS DE GENRE
+Un feed reflète aussi une origine sociale et des stéréotypes de genre. Vérifie explicitement : est-ce que mes pistes renvoient cette personne vers son milieu d'origine ou vers les métiers stéréotypés de son genre supposé ? Si oui, corrige. Ne restreins JAMAIS l'ambition sur la base de l'origine sociale ou du genre inférés. Ne déduis jamais "profil manuel, pas scolaire" d'un simple déclaratif négatif sur l'école.
+
+GF4 — HOMOGÉNÉITÉ DU FEED
+Évalue l'homogénéité du feed (indicateur fourni + ta propre lecture). Si le feed est très homogène (un seul thème écrasant), cherche ce qui N'APPARAÎT PAS plutôt que d'amplifier ce qui sature, et signale-le dans meta.homogeneite_feed et conseiller.angles_morts.
+
+GF5 — DOCUMENTER LES INFÉRENCES RISQUÉES
+Chaque fois que tu infères quelque chose de fragile (une aptitude à partir d'un visionnage, un trait de personnalité à partir de peu de signaux, une interprétation d'un pattern horaire), documente-le dans conseiller.inferences_risquees pour que le professionnel sache ce qui est solide et ce qui ne l'est pas.
+
+GF6 — DONNÉES SENSIBLES (RGPD)
+Ne cherche JAMAIS à inférer, déduire ou restituer des données sensibles (orientation sexuelle, religion, opinions politiques, état de santé, origine ethnique) même si des signaux du feed pourraient y renvoyer. Elles sont hors du périmètre de l'orientation et leur traitement est interdit. Ignore-les.
+
+═══ RÉFÉRENTIEL DOMAINES / MÉTIERS ═══
+Tu raisonnes EXCLUSIVEMENT avec ce référentiel : le domaine principal vient des domaines précis listés (ou d'un domaine plus précis encore si les données le justifient), les facettes viennent de la liste des 14 verbes, les portes d'entrée viennent des portes listées et de leurs croisements inter-univers (les croisements — ex. moto + graphisme = customisateur — sont les meilleures recommandations).
+
+${condenserReferentiel()}
+
+═══ FORMAT DE RETOUR ═══
+JSON strict uniquement. Aucun texte avant ou après. Aucun backtick, aucun bloc markdown. Commence par { et termine par }.
+INTERDIT dans tout le JSON : valeurs numériques de score, pourcentages de match. Uniquement les niveaux "fort" | "moyen" | "faible".
+
+STRUCTURE JSON ATTENDUE :
+{
+  "meta": {
+    "niveau_certitude": "élevé | moyen | faible",
+    "source_principale": "comportemental | déclaratif | mixte",
+    "homogeneite_feed": "élevée | moyenne | faible | non évaluable",
+    "cas_sensible_detecte": false,
+    "type_cas_sensible": null,
+    "note_methodologique": "phrase courte sur les limites de cette analyse (dont le biais algorithmique du feed)"
+  },
+  "profil": {
+    "type": "Le Créateur Pragmatique",
+    "headline_jeune": "phrase courte percutante, lue par la personne (max 12 mots)",
+    "headline_rapport": "version enrichie pour le titre du rapport (max 18 mots)",
+    "couleur_dominante": "green | purple | amber | coral"
+  },
+  "domaine": {
+    "principal": {
+      "nom": "le domaine précis, dans le vocabulaire exact de la personne (ex : la moto)",
+      "univers": "nom de l'univers du référentiel (usage conseiller)",
+      "signal": "fort | moyen | faible",
+      "phrase_jeune": "1-2 phrases directes qui nomment ce domaine et pourquoi c'est le sien",
+      "preuves": ["preuve comportementale 1 (comptes, recherches, volumes, horaires)", "preuve 2", "preuve 3"]
+    },
+    "secondaires": [
+      { "nom": "domaine secondaire (1-2 max)", "signal": "fort | moyen | faible", "preuves": ["preuve"] }
+    ]
+  },
+  "facettes": [
+    { "verbe": "Réparer", "riasec": "R-I", "signal": "fort | moyen | faible", "preuve": "d'où vient cette facette" }
+  ],
+  "riasec": {
+    "dominantes": ["R", "A"],
+    "lecture_conseiller": "lecture du profil RIASEC pour le professionnel, 1-2 phrases"
+  },
+  "interets": [
+    { "label": "Design & création numérique", "intensite": "forte | moyenne | faible", "taille": "lg | md | sm", "couleur": "green | purple | amber | coral", "source": "comportemental | déclaratif | inféré" }
+  ],
+  "hypotheses": [
+    { "nom": "Apprentissage par l'expérience", "type": "intérêt observé | aptitude à vérifier | adéquation à explorer", "signal": "fort | moyen | faible", "couleur": "green | purple | amber", "signal_source": "phrase ultra-courte — d'où vient cette hypothèse", "question_conversation": "question ouverte pour le conseiller" }
+  ],
+  "insight": {
+    "texte_jeune": "observation profonde et surprenante, lue par la personne (2-3 phrases)",
+    "texte_conseiller": "lecture analytique du même signal, pour le professionnel",
+    "question_conversation": "question ouverte pour débloquer un dialogue"
+  },
+  "pistes": [
+    {
+      "emoji": "🎨",
+      "nom": "Concepteur UX / Designer d'expérience",
+      "signal": "fort | moyen | faible",
+      "connu_du_jeune": false,
+      "fenetre": false,
+      "pourquoi_fenetre": "si fenetre=true : pourquoi tu proposes ce métier absent de son feed (sinon null)",
+      "description_jeune": "description du métier en langage direct, 2 phrases max",
+      "pourquoi_toi": "lien entre SES signaux et CE métier, 1-2 phrases spécifiques avec preuves",
+      "voies_acces": [
+        { "formation": "BTS Design Graphique", "duree": "2 ans", "niveau_requis": "Bac", "type": "classique | alternance | apprentissage | formation continue", "eligible_cpf": false, "salaire_indicatif": "fourchette indicative à vérifier sur MétierScope, ou null si incertain" }
+      ],
+      "tension_marche": "forte | correcte | faible",
+      "tags": ["Créatif", "Numérique", "Autonome"],
+      "top": true,
+      "question_conversation": "question pour explorer ce métier en entretien"
+    }
+  ],
+  "environnements": [
+    { "emoji": "🛠️", "titre": "Atelier ou studio", "sous": "Faire avec ses mains", "signal_source": "ultra-court — d'où vient ce signal" }
+  ],
+  "conseiller": {
+    "lecture_globale": "synthèse analytique du profil pour le professionnel (3-4 phrases), incluant la lecture RIASEC",
+    "angles_morts": "ce qui est ABSENT du feed et mérite exploration : domaines cohérents avec le profil jamais croisés, métiers invisibles depuis son milieu (2-3 phrases)",
+    "inferences_risquees": ["inférence fragile 1 et pourquoi elle est fragile", "inférence fragile 2"],
+    "points_attention": [
+      { "type": "decrochage | anxiete | autre", "signal": "ce qui a été détecté", "interpretation": "ce que ça peut vouloir dire", "action_recommandee": "action concrète pour le conseiller" }
+    ],
+    "questions_a_poser": ["Question 1", "Question 2", "Question 3"],
+    "a_ne_pas_faire": ["Piège 1 à éviter", "Piège 2 à éviter"],
+    "conseil_actionnable": "une seule action concrète que le conseiller peut faire dès aujourd'hui",
+    "ressources_suggerer": [
+      { "nom": "ONISEP — fiche métier UX Designer", "type": "fiche métier | témoignage vidéo | formation | dispositif", "url_type": "onisep.fr | parcoursup | alternance | mission locale | moncompteformation" }
+    ]
+  }
+}
+
+CONTRAINTES FINALES :
+- Exactement 4 pistes : au moins 1 accessible immédiatement depuis la situation déclarée, au moins 1 "fenetre": true (hors feed), au moins 1 métier de niche ou porte farfelue du référentiel si elle croise les facettes détectées, au moins 1 à dimension entrepreneuriale si la facette Entreprendre est détectée.
+- 1 domaine principal + 1-2 secondaires maximum.
+- Chaque niveau "fort/moyen/faible" est justifié par une preuve. Jamais de niveau sans preuve.${isAdulte ? condenserCPF() : ''}`;
+}
+
+/* ─── État global ───────────────────────────────────────────── */
+const state = {
+  apiKey:             '',
+  formData:           {},
+  signaux:            null,   // signaux fusionnés envoyés à Claude
+  signaux_instagram:  null,   // signaux Instagram seuls
+  signaux_tiktok:     null,   // signaux TikTok seuls
+  sourceDonnees:      'declaratif_seul',
+  hasFile:            false,
+  hasFileInsta:       false,
+  hasFileTiktok:      false,
+  isDemo:             false,
+  report:             null,
+};
+
+/* ─── Init ──────────────────────────────────────────────────── */
+/* ─── Situations de formation (référentiel v1.1) ────────────── */
+const PRECISION_HINTS = {
+  lycee_general:   { label: 'Tes spécialités',                 ph: 'Ex : Maths, NSI, Physique-Chimie…' },
+  lycee_techno:    { label: 'Ta filière',                      ph: 'Ex : STI2D, STMG, ST2S…' },
+  bac_pro:         { label: 'Ton secteur de Bac pro',          ph: 'Ex : MELEC, Commerce, Cuisine…' },
+  cap:             { label: 'Ton secteur de CAP',              ph: 'Ex : Carrosserie, Pâtisserie, Menuiserie…' },
+  etudes_sup:      { label: 'Ta filière d\'études',            ph: 'Ex : BTS SIO, licence STAPS, BUT MMI…' },
+  adulte_en_poste: { label: 'Ton poste actuel',                ph: 'Ex : vendeur, agent logistique, comptable…' },
+  adulte_recherche:{ label: 'Ton dernier poste / ton parcours', ph: 'Ex : 5 ans en restauration…' },
+};
+
+function situationLabel(id) {
+  const el = document.querySelector(`#f-situation option[value="${id}"]`);
+  return el ? el.textContent : id;
+}
+
+function updatePrecisionField() {
+  const sit  = document.getElementById('f-situation').value;
+  const wrap = document.getElementById('fg-precision');
+  const hint = PRECISION_HINTS[sit];
+  if (hint) {
+    wrap.style.display = 'block';
+    document.getElementById('label-precision').textContent = hint.label;
+    document.getElementById('f-precision').placeholder     = hint.ph;
+  } else {
+    wrap.style.display = 'none';
+    document.getElementById('f-precision').value = '';
+  }
+}
+
+function addCompetence(btn) {
+  const ta  = document.getElementById('f-competences');
+  const txt = btn.textContent.trim();
+  ta.value = ta.value.trim() ? ta.value.trim().replace(/,?\s*$/, ', ') + txt : txt;
+  saveFormData();
+}
+
+/* ─── Persistance formulaire (localStorage) ─────────────────── */
+const LS_KEY = 'fy_form_v2';
+
+function saveFormData() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      prenom:      document.getElementById('f-prenom').value,
+      age:         document.getElementById('f-age').value,
+      situation:   document.getElementById('f-situation').value,
+      precision:   document.getElementById('f-precision').value,
+      aime:        document.getElementById('f-aime').value,
+      dislike:     document.getElementById('f-dislike').value,
+      competences: document.getElementById('f-competences').value,
+      apiKey:      document.getElementById('api-key').value,
+    }));
+  } catch {}
+}
+
+function restoreFormData() {
+  try {
+    const d = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
+    if (!d) return;
+    if (d.prenom)      document.getElementById('f-prenom').value      = d.prenom;
+    if (d.age)         document.getElementById('f-age').value         = d.age;
+    if (d.situation)   document.getElementById('f-situation').value   = d.situation;
+    if (d.precision)   document.getElementById('f-precision').value   = d.precision;
+    if (d.aime)        document.getElementById('f-aime').value        = d.aime;
+    if (d.dislike)     document.getElementById('f-dislike').value     = d.dislike;
+    if (d.competences) document.getElementById('f-competences').value = d.competences;
+    if (d.apiKey && !PREFILLED_KEY) document.getElementById('api-key').value = d.apiKey;
+    updatePrecisionField();
+  } catch {}
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  restoreFormData();
+  if (PREFILLED_KEY) document.getElementById('api-key').value = PREFILLED_KEY;
+  // Mode production : masquer la saisie de clé (la clé vit côté proxy),
+  // afficher à la place le champ « code d'accès conseiller ».
+  if (USE_BACKEND()) {
+    const apiCard = document.getElementById('api-card');
+    if (apiCard) apiCard.style.display = 'none';
+    const accessCard = document.getElementById('access-card');
+    if (accessCard) accessCard.style.display = 'block';
+    try {
+      const code = localStorage.getItem('fy_access_code');
+      if (code) document.getElementById('access-code').value = code;
+    } catch {}
+    const ac = document.getElementById('access-code');
+    if (ac) ac.addEventListener('input', () => { try { localStorage.setItem('fy_access_code', ac.value.trim()); } catch {} });
+  }
+  checkForm();
+
+  // Sauvegarde automatique à chaque modification
+  ['f-prenom','f-age','f-situation','f-precision','f-aime','f-dislike','f-competences','api-key'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', saveFormData);
+    if (el) el.addEventListener('change', saveFormData);
+  });
+});
+
+// Empêche Chrome de naviguer vers le fichier déposé en dehors de la zone de drop
+function openExportModal()  { document.getElementById('export-modal').classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeExportModal() { document.getElementById('export-modal').classList.remove('open'); document.body.style.overflow = ''; }
+
+window.addEventListener('dragover', e => e.preventDefault());
+window.addEventListener('drop',     e => { e.preventDefault(); e.stopPropagation(); });
+
+/* ─── Navigation entre écrans ──────────────────────────────── */
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + name);
+  if (el) { el.classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+}
+
+/* ─── Toast ─────────────────────────────────────────────────── */
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (type ? ' ' + type : '') + ' show';
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+/* ─── Validation formulaire ─────────────────────────────────── */
+function checkForm() {
+  const key    = document.getElementById('api-key').value.trim();
+  const prenom = document.getElementById('f-prenom').value.trim();
+  const age    = document.getElementById('f-age').value;
+  const aime   = document.getElementById('f-aime').value.trim();
+  const dis    = document.getElementById('f-dislike').value.trim();
+
+  // Clé requise seulement en mode pilote (sans backend proxy)
+  const okKey  = USE_BACKEND() || key.startsWith('sk-ant-');
+  const okId   = prenom && age;
+  const okData = aime || dis || state.hasFile;
+
+  // Consentement RGPD (EJ-2) — obligatoire, + consentement parental si mineur (< 15 ans)
+  const okConsent = document.getElementById('consent-main').checked;
+  const mineur    = age && Number(age) < 15;
+  const parentWrap = document.getElementById('consent-parent-wrap');
+  parentWrap.style.display = mineur ? 'flex' : 'none';
+  const okParent  = !mineur || document.getElementById('consent-parent').checked;
+
+  document.getElementById('launch-btn').disabled =
+    !(okKey && okId && okData && okConsent && okParent);
+}
+
+/* ─── Drag & drop dual ──────────────────────────────────────── */
+function dzOver(e, p)  { e.preventDefault(); document.getElementById('dz-'+p).classList.add('over'); }
+function dzLeave(p)    { document.getElementById('dz-'+p).classList.remove('over'); }
+function dzDrop(e, p)  { e.preventDefault(); e.stopPropagation(); document.getElementById('dz-'+p).classList.remove('over'); if (e.dataTransfer.files[0]) processPlatformFile(e.dataTransfer.files[0], p); }
+function dzSelect(e,p) { if (e.target.files[0]) processPlatformFile(e.target.files[0], p); }
+
+function markPlatformLoaded(platform, filename) {
+  const el     = document.getElementById('dz-' + platform);
+  const status = document.getElementById('dz-' + platform + '-status');
+  el.classList.add('loaded' + (platform === 'tiktok' ? '-tiktok' : ''));
+  el.classList.remove('over');
+  status.textContent = '✓ ' + filename.slice(0, 22) + (filename.length > 22 ? '…' : '');
+  if (platform === 'insta')  { state.hasFileInsta  = true; }
+  if (platform === 'tiktok') { state.hasFileTiktok = true; }
+  state.hasFile = true;
+  // Badge combiné si les deux sont chargés
+  if (state.hasFileInsta && state.hasFileTiktok) {
+    document.getElementById('dual-badge').classList.add('visible');
+  }
+  // Fusionner les signaux
+  state.signaux       = mergeSignaux(state.signaux_instagram, state.signaux_tiktok);
+  state.sourceDonnees = state.hasFileInsta && state.hasFileTiktok ? 'instagram+tiktok'
+    : state.hasFileInsta ? 'instagram' : 'tiktok';
+  checkForm();
+}
+
+function mergeSignaux(ig, tt) {
+  if (!ig && !tt) return null;
+  if (!ig) return tt;
+  if (!tt) return ig;
+  const uniq = (a, b) => [...new Set([...(a||[]), ...(b||[])])];
+  return {
+    comptes_suivis:    uniq(ig.comptes_suivis,   tt.comptes_suivis).slice(0, 50),
+    themes_videos:     uniq(ig.themes_videos,    tt.themes_videos).slice(0, 50),
+    recherches:        uniq(ig.recherches,       tt.recherches).slice(0, 30),
+    favoris:           uniq(ig.favoris,          tt.favoris).slice(0, 30),
+    extraits_legendes: uniq(ig.extraits_legendes, tt.extraits_legendes).slice(0, 20),
+    patterns_horaires: [ig.patterns_horaires, tt.patterns_horaires].filter(Boolean).join(' | '),
+    frequence:         [ig.frequence, tt.frequence].filter(Boolean).join(' + '),
+    bio:               ig.bio || tt.bio,
+  };
+}
+
+async function processPlatformFile(file, platform) {
+  const name = file.name.toLowerCase();
+  try {
+    let signaux, source;
+    if (name.endsWith('.json')) {
+      const text = await file.text();
+      let json;
+      try { json = JSON.parse(text); } catch { toast('Fichier JSON malformé.', 'error'); return; }
+      const src = detectSource(json);
+      let sig   = extraireSignaux(json, src);
+      if (!hasSig(sig)) {
+        const deep = extraireSignauxRecursif(json);
+        if (hasSig(deep)) { sig = deep; } else {
+          toast('Données non reconnues — clés : ' + Object.keys(json).slice(0, 8).join(', '), 'error'); return;
+        }
+      }
+      signaux = sig; source = src;
+    } else if (name.endsWith('.zip')) {
+      let result;
+      if (file.size > 80 * 1024 * 1024) {
+        toast('Fichier volumineux — extraction en cours…', 'info');
+        result = await processLargeZip(file);
+      } else {
+        if (typeof JSZip === 'undefined') { toast('JSZip non chargé.', 'error'); return; }
+        const zip = await JSZip.loadAsync(file);
+        result = await findJsonInZip(zip);
+      }
+      const sig = result.signaux || extraireSignaux(result.json, result.source);
+      if (result.source === 'declaratif_seul' || !hasSig(sig)) {
+        toast('Aucune donnée reconnue dans ce fichier.', 'error'); return;
+      }
+      signaux = sig; source = result.source;
+    } else {
+      toast('Format non reconnu (.json ou .zip uniquement).', 'error'); return;
+    }
+
+    if (platform === 'insta')  { state.signaux_instagram = signaux; }
+    if (platform === 'tiktok') { state.signaux_tiktok    = signaux; }
+
+    const count = (signaux.comptes_suivis?.length||0) + (signaux.favoris?.length||0)
+                + (signaux.recherches?.length||0) + (signaux.extraits_legendes?.length||0);
+    toast(`✓ ${platform === 'insta' ? 'Instagram' : 'TikTok'} — ${count} signaux extraits`, 'success');
+    markPlatformLoaded(platform, file.name);
+  } catch (err) {
+    toast('Erreur lecture : ' + (err.message || 'inconnue'), 'error');
+  }
+}
+
+/* ─── Traitement fichier ────────────────────────────────────── */
+async function processFile(file) {
+  const name = file.name.toLowerCase();
+  try {
+    if (name.endsWith('.json')) {
+      const text = await file.text();
+      let json;
+      try { json = JSON.parse(text); }
+      catch { toast('Le fichier JSON est malformé.', 'error'); return; }
+
+      // Recherche d'abord en surface, puis en profondeur si rien trouvé
+      let src     = detectSource(json);
+      let signaux = extraireSignaux(json, src);
+
+      if (!hasSig(signaux)) {
+        // Recherche récursive dans la structure imbriquée
+        const deep = extraireSignauxRecursif(json);
+        if (hasSig(deep)) {
+          signaux = deep;
+          src     = 'instagram';
+        } else {
+          // Debug : afficher les clés trouvées
+          const cles = Object.keys(json).slice(0, 10).join(', ');
+          toast(`Données non reconnues. Clés trouvées : ${cles || '(aucune)'}`, 'error');
+          return;
+        }
+      }
+      state.signaux       = signaux;
+      state.sourceDonnees = src;
+    } else if (name.endsWith('.zip')) {
+      let result;
+      // Fichiers > 80 Mo : parser ZIP natif (lit seulement les JSON, pas les médias)
+      if (file.size > 80 * 1024 * 1024) {
+        toast('Fichier volumineux détecté — extraction des données en cours…', 'info');
+        result = await processLargeZip(file);
+      } else {
+        if (typeof JSZip === 'undefined') { toast('Impossible de charger JSZip. Vérifie ta connexion.', 'error'); return; }
+        const zip = await JSZip.loadAsync(file);
+        result = await findJsonInZip(zip);
+      }
+      const signaux = result.signaux || extraireSignaux(result.json, result.source);
+      if (result.source === 'declaratif_seul' || !hasSig(signaux)) {
+        toast(
+          'Aucune donnée reconnue dans ce fichier. Vérifie que c\'est bien un export TikTok (user_data.json) ou Instagram au format JSON, pas un ZIP de photos uniquement.',
+          'error'
+        );
+        return;
+      }
+      state.signaux       = signaux;
+      state.sourceDonnees = result.source;
+      // Résumé d'extraction pour diagnostiquer
+      toast(
+        `✓ ${result.source} — ${signaux.comptes_suivis?.length||0} follows · ${signaux.favoris?.length||0} comptes likés · ${signaux.extraits_legendes?.length||0} légendes · ${signaux.recherches?.length||0} recherches`,
+        'success'
+      );
+    } else {
+      toast('Format non reconnu. Utilise un fichier .json ou .zip TikTok/Instagram.', 'error');
+      return;
+    }
+    markFileLoaded(file.name);
+  } catch {
+    toast('Impossible de lire ce fichier.', 'error');
+  }
+}
+
+function markFileLoaded(name) {
+  state.hasFile = true; state.isDemo = false;
+  document.getElementById('dropzone').classList.add('loaded');
+  document.getElementById('dz-title').textContent     = 'Fichier chargé ✓';
+  document.getElementById('dz-sub').textContent       = '';
+  document.getElementById('dz-filename').textContent  = name;
+  document.getElementById('dz-filename').style.display = 'block';
+  checkForm();
+}
+
+function hasSig(s) {
+  if (!s) return false;
+  return Object.values(s).some(v => Array.isArray(v) ? v.length > 0 : Boolean(v));
+}
+
+/* ─── Détection source & extraction signaux ─────────────────── */
+function detectSource(json) {
+  if (json?.Activity || json?.Profile?.ProfileMap) return 'tiktok';
+  if (json?.topics_your_topics || json?.inferred_data_ig_interest || json?.ig_interest ||
+      json?.searches_user || json?.account_searches ||
+      json?.relationships_following || json?.likes_media_likes ||
+      json?.reels_topics || json?.saved_saved_media) return 'instagram';
+  return 'tiktok';
+}
+
+// Extrait une valeur depuis le format string_map_data d'Instagram
+function igVal(item, ...keys) {
+  if (!item?.string_map_data) return null;
+  for (const k of keys) {
+    const v = item.string_map_data[k];
+    if (v?.value) return v.value;
+    if (v?.href)  return v.href;
+  }
+  return null;
+}
+
+function extraireCompte(url) {
+  if (!url) return null;
+  const m = url.match(/@([^/?&\s]+)/) || url.match(/instagram\.com\/([^/?&\s]+)/);
+  return m ? '@' + m[1] : null;
+}
+
+/* ─── Correction d'encodage (mojibake latin-1 → utf-8) ─────── */
+function fixEncoding(s) {
+  if (typeof s !== 'string') return s;
+  try {
+    const bytes = new Uint8Array(s.length);
+    for (let i = 0; i < s.length; i++) bytes[i] = s.charCodeAt(i) & 0xFF;
+    const decoded = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    s = decoded;
+  } catch {}
+  // â suivi d'un caractère ASCII = apostrophe typographique
+  s = s.replace(/â(?=[\x00-\x7F\s]|$)/g, "'");
+  return s;
+}
+function fixEncodingDeep(obj) {
+  if (typeof obj === 'string')  return fixEncoding(obj);
+  if (Array.isArray(obj))       return obj.map(fixEncodingDeep);
+  if (obj && typeof obj === 'object') {
+    const r = {};
+    for (const [k, v] of Object.entries(obj)) r[k] = fixEncodingDeep(v);
+    return r;
+  }
+  return obj;
+}
+
+/* ─── Helpers parsing Instagram ─────────────────────────────── */
+// Retourne le tableau principal d'un fichier JSON Instagram
+function igEntries(json) {
+  if (Array.isArray(json)) return json;
+  const vals = Object.values(json || {});
+  const arr = vals.find(v => Array.isArray(v) && v.length > 0);
+  return arr || [];
+}
+
+// Cherche une valeur dans label_values par label partiel
+function igLabel(entry, ...labels) {
+  for (const lv of entry?.label_values || []) {
+    const l = (lv.label || '').toLowerCase();
+    if (labels.some(lab => l.includes(lab.toLowerCase()) || lab.toLowerCase().includes(l))) {
+      if (lv.value)           return lv.value;
+      if (lv.timestamp_value) return null; // c'est un timestamp, pas du texte
+    }
+  }
+  return null;
+}
+
+/* ─── Extraction Instagram par fichier (spec auditée mai 2026) ─
+   Basé sur l'audit manuel de l'export :
+   - videos_watched / posts_viewed / saved_posts → label_values
+   - following.json → entry.title + string_list_data[0].timestamp
+   - 3 schémas de recherche différents selon fichier
+   - fix_encoding() sur chaque entrée avant traitement
+   - your_topics.json absent → inférer depuis captions
+   ─────────────────────────────────────────────────────────────── */
+function extraireSignauxInstagramV2(fileMap) {
+  const s = { comptes_suivis: [], themes_videos: [], recherches: [], favoris: [], patterns_horaires: null, frequence: null };
+  const timestamps  = [];
+  const captions    = [];
+  const followMap   = {}; // username → timestamp (pour trier par recency)
+  const likeFreq    = {}; // username → nb de likes/saves (pour top comptes)
+
+  // Helper : extrait une valeur depuis label_values avec matching souple
+  function fromLabelValues(lvs, matchFn) {
+    for (const lv of lvs || []) {
+      if (!lv || typeof lv !== 'object') continue;
+      const label = typeof lv.label === 'string' ? lv.label : '';
+      if (matchFn(label) && typeof lv.value === 'string' && lv.value.trim()) {
+        return lv.value.trim();
+      }
+    }
+    return null;
+  }
+
+  const isCaption = l => /gende|caption/i.test(l);
+  const isQuery   = l => /u[eê]te|query|echerch/i.test(l);
+
+  for (const [path, rawJson] of Object.entries(fileMap)) {
+    const json  = fixEncodingDeep(rawJson);
+    const fname = path.replace(/\\/g, '/').split('/').pop().toLowerCase();
+
+    // ── following.json — spec : entry.title + string_list_data[0].timestamp ──
+    if (fname === 'following.json') {
+      for (const e of igEntries(json)) {
+        const u  = typeof e?.title === 'string' ? e.title : null;
+        const ts = e?.string_list_data?.[0]?.timestamp || 0;
+        if (u && !u.startsWith('http')) followMap[u] = ts;
+      }
+    }
+
+    // ── videos_watched / posts_viewed / ads_viewed ─────────────
+    // Métadonnées dans label_values, timestamps à la racine
+    if (['videos_watched.json','posts_viewed.json','ads_viewed.json'].includes(fname)) {
+      for (const e of igEntries(json)) {
+        if (e?.timestamp) timestamps.push(e.timestamp);
+        const cap = fromLabelValues(e?.label_values, isCaption);
+        if (cap && cap.length > 5 && !cap.startsWith('http')) captions.push(cap);
+      }
+    }
+
+    // ── saved_posts.json — légendes + timestamps + auteurs ────────
+    if (fname === 'saved_posts.json') {
+      for (const e of igEntries(json)) {
+        // Timestamp : à la racine ou dans string_list_data
+        const ts = e?.timestamp || e?.string_list_data?.[0]?.timestamp;
+        if (ts) timestamps.push(ts);
+        const cap = fromLabelValues(e?.label_values, isCaption);
+        if (cap && cap.length > 5 && !cap.startsWith('http')) captions.push(cap);
+        const u = typeof e?.title === 'string' && e.title ? e.title
+          : fromLabelValues(e?.label_values, l => /auteur|author|user|titre|title/i.test(l));
+        if (u && !u.startsWith('http') && u.length < 60) {
+          likeFreq[u] = (likeFreq[u] || 0) + 2;
+        }
+      }
+    }
+
+    // ── liked_posts.json — timestamps + auteurs ─────────────────
+    if (fname === 'liked_posts.json') {
+      for (const e of igEntries(json)) {
+        // Timestamp dans string_list_data (spec auditée)
+        const ts = e?.string_list_data?.[0]?.timestamp || e?.timestamp;
+        if (ts) timestamps.push(ts);
+        // Auteur
+        let u = typeof e?.title === 'string' && e.title ? e.title : null;
+        if (!u || u.startsWith('http')) {
+          u = fromLabelValues(e?.label_values, l => /auteur|author|user/i.test(l))
+           || fromLabelValues(e?.label_values, l => /titre|title/i.test(l));
+        }
+        if (!u) {
+          const url = fromLabelValues(e?.label_values, l => l.toUpperCase() === 'URL' || l === 'Lien') || '';
+          u = extraireCompte(url) || null;
+        }
+        if (u && !u.startsWith('http') && u.replace('@','').length > 0 && u.length < 60) {
+          likeFreq[u.replace(/^@/, '')] = (likeFreq[u.replace(/^@/, '')] || 0) + 1;
+        }
+        const cap = fromLabelValues(e?.label_values, isCaption);
+        if (cap && cap.length > 5 && !cap.startsWith('http')) captions.push(cap);
+      }
+    }
+
+    // ── stories_viewed / story_likes — timestamps + auteurs ─────
+    if (fname === 'stories_viewed.json' || fname === 'story_likes.json') {
+      const w = fname === 'story_likes.json' ? 0.5 : 0.1;
+      for (const e of igEntries(json)) {
+        const ts = e?.timestamp || e?.string_list_data?.[0]?.timestamp;
+        if (ts) timestamps.push(ts);
+        const u = typeof e?.title === 'string' ? e.title : null;
+        if (u && !u.startsWith('http') && u.length < 60) {
+          likeFreq[u] = (likeFreq[u] || 0) + w;
+        }
+      }
+    }
+
+    // ── profile_searches.json — entry.title direct ─────────────
+    if (fname === 'profile_searches.json') {
+      for (const e of igEntries(json)) {
+        const q = typeof e?.title === 'string' ? e.title : null;
+        if (q) s.recherches.push(q);
+      }
+    }
+
+    // ── word_or_phrase_searches.json — string_map_data ─────────
+    // Clé "Recherche" (FR) ou "Search" selon locale
+    if (fname === 'word_or_phrase_searches.json') {
+      for (const e of igEntries(json)) {
+        const smd = e?.string_map_data || {};
+        const q = smd['Recherche']?.value
+               || smd['Search']?.value
+               || smd['Query']?.value
+               || Object.values(smd).find(v => typeof v?.value === 'string' && v.value && !v.href)?.value;
+        if (q) s.recherches.push(q);
+      }
+    }
+
+    // ── recent_searches.json — label_values (Requête de recherche) ─
+    if (fname === 'recent_searches.json') {
+      for (const e of igEntries(json)) {
+        const q = fromLabelValues(e?.label_values, isQuery) || (typeof e?.title === 'string' ? e.title : null);
+        if (q) s.recherches.push(q);
+      }
+    }
+  }
+
+  // ── comptes_suivis : 40 follows les plus récents ─────────────
+  s.comptes_suivis = Object.entries(followMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 40)
+    .map(([u]) => u);
+
+  // ── favoris : top 25 comptes les plus likés/sauvegardés ──────
+  s.favoris = Object.entries(likeFreq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 25)
+    .map(([u]) => u);
+
+  // ── Patterns horaires ─────────────────────────────────────────
+  if (timestamps.length > 0) {
+    const hCount = Array(24).fill(0);
+    // Heure locale du navigateur (gère automatiquement UTC+1/UTC+2 pour la France)
+    timestamps.forEach(ts => hCount[new Date(ts * 1000).getHours()]++);
+    const max = Math.max(...hCount);
+    const peaks = hCount.map((c, h) => ({ h, c })).filter(x => x.c >= max * 0.55).map(x => `${x.h}h–${x.h+1}h`);
+    // Détecter activité nocturne (22h–5h)
+    const noctCount = hCount.slice(22).concat(hCount.slice(0, 5)).reduce((a, b) => a + b, 0);
+    const noctPct   = Math.round(noctCount / timestamps.length * 100);
+    const noctNote  = noctPct >= 10 ? ` — dont ${noctPct}% d'activité nocturne (22h–5h)` : '';
+    if (peaks.length) s.patterns_horaires = `Pics d'activité : ${peaks.slice(0, 5).join(', ')}${noctNote} — ${timestamps.length} interactions sur ${new Set(timestamps.map(ts => new Date(ts*1000).toDateString())).size} jours`;
+    s.frequence = `${timestamps.length} interactions analysées (likes, stories, posts, sauvegardes)`;
+  }
+
+  // ── Thèmes depuis captions (your_topics absent → inférence) ──
+  if (captions.length > 0) {
+    // Hashtags par fréquence
+    const htCount = {};
+    captions.forEach(c => {
+      (c.match(/#[\wÀ-ÿ]+/g) || []).forEach(h => {
+        const k = h.slice(1).toLowerCase();
+        if (k.length > 2) htCount[k] = (htCount[k] || 0) + 1;
+      });
+    });
+    const topHT = Object.entries(htCount).sort((a,b)=>b[1]-a[1]).slice(0,20).map(([h])=>'#'+h);
+    s.themes_videos = topHT;
+
+    // Échantillon aléatoire de légendes réelles pour Claude
+    const shuffled = captions.filter(c => c.length > 15).sort(() => Math.random() - 0.5);
+    s.extraits_legendes = shuffled.slice(0, 20).map(c => c.slice(0, 150).replace(/\s+/g,' ').trim());
+  }
+
+  s.recherches = [...new Set(s.recherches)].filter(Boolean).slice(0, 30);
+  return s;
+}
+
+function extraireSignaux(json, source) {
+  const s = { comptes_suivis: [], themes_videos: [], recherches: [], favoris: [], patterns_horaires: null, frequence: null };
+
+  if (source === 'tiktok') {
+    const following = json?.Activity?.FollowingList?.Following || json?.Activity?.FollowingList || [];
+    const searches  = json?.Activity?.SearchHistory?.SearchList || json?.Activity?.SearchHistory || [];
+    const videos    = json?.Activity?.VideoHistory?.VideoList   || json?.Activity?.VideoHistory  || [];
+    const favs      = json?.Activity?.FavoriteVideoList?.FavoriteVideoList || [];
+    const profile   = json?.Profile?.ProfileMap || {};
+    s.comptes_suivis = following.map(f => f.UserName || f.username || '').filter(Boolean).slice(0, 30);
+    s.recherches     = searches.map(r => r.SearchTerm || r.search_term || r.query || '').filter(Boolean).slice(0, 20);
+    s.themes_videos  = videos.map(v => extraireCompte(v.VideoLink || v.Link || '')).filter(Boolean).slice(0, 40);
+    s.favoris        = favs.map(f => extraireCompte(f.Link || f.VideoLink || '')).filter(Boolean).slice(0, 15);
+    if (profile.bio || profile.biography) s.bio = profile.bio || profile.biography;
+  }
+
+  if (source === 'instagram') {
+    // Sujets / centres d'intérêt (toutes versions 2022-2026)
+    const topics = [
+      ...(json?.topics_your_topics          || []),
+      ...(json?.inferred_data_ig_interest   || []),
+      ...(json?.ig_interest                 || []),
+      ...(json?.topics_you_follow           || []),
+      ...(json?.ads_interests               || []),
+      ...(json?.reels_topics                || []),  // 2025-2026
+    ];
+    s.themes_videos = topics.map(t =>
+      igVal(t, 'Name', 'Interest', 'Topic') || t?.name || t?.value || (typeof t === 'string' ? t : null)
+    ).filter(Boolean).slice(0, 40);
+
+    // Comptes suivis
+    const following = json?.relationships_following || [];
+    s.comptes_suivis = following.map(f => {
+      if (Array.isArray(f?.string_list_data)) return f.string_list_data[0]?.value || null;
+      return igVal(f, 'Username', 'Name') || null;
+    }).filter(Boolean).slice(0, 30);
+
+    // Recherches (account_searches.json 2026 + formats précédents)
+    const searches = [
+      ...(json?.searches_user       || []),
+      ...(json?.account_searches    || []),  // 2026
+    ];
+    s.recherches = searches.map(r =>
+      igVal(r, 'Search', 'Query', 'Username') || r?.search_query || r?.SearchTerm || ''
+    ).filter(Boolean).slice(0, 20);
+
+    // Posts likés → extraire comptes
+    const likes = [
+      ...(json?.likes_media_likes   || []),
+      ...(json?.likes_comment_likes || []),
+      ...(json?.saved_saved_media   || []),  // 2026
+    ];
+    s.favoris = likes.flatMap(l =>
+      (l?.string_list_data || []).map(d => extraireCompte(d?.href || '') || d?.value || null)
+    ).filter(Boolean).slice(0, 15);
+  }
+
+  return s;
+}
+
+/* ─── Parser ZIP natif pour fichiers volumineux (> 80 Mo) ──────
+   Lit uniquement le répertoire central (fin du fichier) puis
+   extrait seulement les .json — les photos/vidéos ne sont jamais
+   chargées en mémoire.                                          */
+async function sliceToBuffer(file, start, length) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file.slice(start, start + length));
+  });
+}
+
+async function processLargeZip(file) {
+  const decoder = new TextDecoder('utf-8', { fatal: false });
+
+  // 1. Lire les 64 Ko de fin pour trouver l'EOCD (End of Central Directory)
+  const tailLen = Math.min(65558, file.size);
+  const tail    = await sliceToBuffer(file, file.size - tailLen, tailLen);
+  const tailU8  = new Uint8Array(tail);
+  const tailDV  = new DataView(tail);
+
+  let eocd = -1;
+  for (let i = tailLen - 22; i >= 0; i--) {
+    if (tailDV.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd === -1) throw new Error('Archive ZIP invalide (EOCD introuvable).');
+
+  const cdSize   = tailDV.getUint32(eocd + 12, true);
+  let   cdOffset = tailDV.getUint32(eocd + 16, true);
+
+  // Support ZIP64 basique : si offset = 0xFFFFFFFF, chercher ZIP64 EOCD locator
+  if (cdOffset === 0xFFFFFFFF) {
+    // ZIP64 EOCD locator = signature 0x07064b50, 20 octets avant l'EOCD standard
+    const loc = eocd - 20;
+    if (loc >= 0 && tailDV.getUint32(loc, true) === 0x07064b50) {
+      // offset de l'EOCD64 sur 8 octets
+      const eocd64AbsLow  = tailDV.getUint32(loc + 8,  true);
+      const eocd64AbsHigh = tailDV.getUint32(loc + 12, true);
+      if (eocd64AbsHigh === 0) {
+        const eocd64Buf = await sliceToBuffer(file, eocd64AbsLow, 56);
+        const eocd64DV  = new DataView(eocd64Buf);
+        cdOffset = Number(eocd64DV.getBigUint64(48, true));
+      }
+    }
+  }
+
+  // 2. Lire le répertoire central
+  const cdBuf = await sliceToBuffer(file, cdOffset, cdSize);
+  const cdDV  = new DataView(cdBuf);
+
+  // 3. Parcourir les entrées, ne garder que les .json < 30 Mo
+  const entries = [];
+  let pos = 0;
+  while (pos + 46 <= cdSize) {
+    if (cdDV.getUint32(pos, true) !== 0x02014b50) break;
+    const compression  = cdDV.getUint16(pos + 10, true);
+    const compSize32   = cdDV.getUint32(pos + 20, true);
+    const uncompSize32 = cdDV.getUint32(pos + 24, true);
+    const nameLen      = cdDV.getUint16(pos + 28, true);
+    const extraLen     = cdDV.getUint16(pos + 30, true);
+    const commentLen   = cdDV.getUint16(pos + 32, true);
+    let   localOff     = cdDV.getUint32(pos + 42, true);
+    let   compSize     = compSize32;
+
+    const nameU8 = new Uint8Array(cdBuf, pos + 46, nameLen);
+    const fname  = decoder.decode(nameU8);
+
+    // ── ZIP64 : lire les vraies valeurs depuis l'extra field ────
+    // Spec ZIP64 : chaque champ n'est présent que si le champ 32 bits vaut 0xFFFFFFFF
+    // Ordre : uncompSize (si 0xFFFF), compSize (si 0xFFFF), localOff (si 0xFFFF)
+    if (compSize32 === 0xFFFFFFFF || uncompSize32 === 0xFFFFFFFF || localOff === 0xFFFFFFFF) {
+      let ep = pos + 46 + nameLen;
+      const epEnd = ep + extraLen;
+      while (ep + 4 <= epEnd) {
+        const hId = cdDV.getUint16(ep, true);
+        const hSz = cdDV.getUint16(ep + 2, true);
+        if (hId === 0x0001) {
+          let off = ep + 4; // début des données du ZIP64 extra field
+          if (uncompSize32 === 0xFFFFFFFF && off + 8 <= ep + 4 + hSz) {
+            off += 8; // uncompressed size présent → sauter
+          }
+          if (compSize32 === 0xFFFFFFFF && off + 8 <= ep + 4 + hSz) {
+            compSize = Number(cdDV.getBigUint64(off, true));
+            off += 8;
+          }
+          if (localOff === 0xFFFFFFFF && off + 8 <= ep + 4 + hSz) {
+            localOff = Number(cdDV.getBigUint64(off, true));
+          }
+          break;
+        }
+        ep += 4 + hSz;
+      }
+    }
+
+    const fnLower = fname.toLowerCase();
+    const inUsefulFolder = [
+      'instagram', 'your_instagram_activity', 'ads_information',
+      'connections', 'preferences', 'personal_information',
+      'apps_and_websites', 'logged_information',
+    ].some(f => fnLower.includes(f));
+    const isMediaFolder = fnLower.includes('/media/') || fnLower.includes('\\media\\')
+      || fnLower.includes('/files/') || fnLower.includes('\\files\\');
+
+    // Pas de limite de taille — on lit tous les JSON utiles
+    if (fname.endsWith('.json') && compSize > 0
+        && (inUsefulFolder || !fnLower.includes('/')) && !isMediaFolder) {
+      entries.push({ fname, compression, compSize, localOff });
+    }
+    pos += 46 + nameLen + extraLen + commentLen;
+  }
+
+  // 4. Lire et décompresser chaque .json → fileMap {path: json}
+  // Debug : liste des fichiers JSON trouvés dans le répertoire central
+  const debugNames = entries.map(e => e.fname.split('/').pop() + ' (' + Math.round(e.compSize/1024) + 'Ko)').join(', ');
+  console.log('[FindYourself] Fichiers JSON trouvés :', debugNames);
+  toast('Fichiers trouvés : ' + entries.map(e => e.fname.split('/').pop()).join(' · '), 'info');
+
+  const fileMap = {};
+  let found = 0;
+  for (const e of entries) {
+    try {
+      const lhBuf = await sliceToBuffer(file, e.localOff, 30);
+      const lhDV  = new DataView(lhBuf);
+      if (lhDV.getUint32(0, true) !== 0x04034b50) continue;
+      const lhName  = lhDV.getUint16(26, true);
+      const lhExtra = lhDV.getUint16(28, true);
+      const dataOff = e.localOff + 30 + lhName + lhExtra;
+      const compBuf = await sliceToBuffer(file, dataOff, e.compSize);
+      let text;
+      if (e.compression === 0) {
+        text = decoder.decode(compBuf);
+      } else if (e.compression === 8 && typeof DecompressionStream !== 'undefined') {
+        const ds = new DecompressionStream('deflate-raw');
+        const wr = ds.writable.getWriter();
+        wr.write(new Uint8Array(compBuf)); wr.close();
+        const chunks = []; const rd = ds.readable.getReader();
+        for (;;) { const { done, value } = await rd.read(); if (done) break; chunks.push(value); }
+        let total = 0; for (const c of chunks) total += c.length;
+        const out = new Uint8Array(total); let off = 0;
+        for (const c of chunks) { out.set(c, off); off += c.length; }
+        text = decoder.decode(out);
+      }
+      if (text) {
+        const json = JSON.parse(text);
+        if (typeof json === 'object' && json !== null) { fileMap[e.fname] = json; found++; }
+      }
+    } catch {}
+  }
+
+  if (found === 0) return { json: {}, source: 'declaratif_seul' };
+
+  // TikTok : un seul fichier user_data.json
+  for (const [path, json] of Object.entries(fileMap)) {
+    if (path.toLowerCase().includes('user_data') && json?.Activity) {
+      const sig = extraireSignaux(json, 'tiktok');
+      return { json, source: 'tiktok', signaux: hasSig(sig) ? sig : null };
+    }
+  }
+
+  // Instagram : extraction par fichier avec la spec auditée
+  const igSig = extraireSignauxInstagramV2(fileMap);
+  if (hasSig(igSig)) return { json: {}, source: 'instagram', signaux: igSig };
+
+  // Fallback brut
+  const merged = Object.assign({}, ...Object.values(fileMap));
+  const sigBrut = extraireSignauxBruts(merged);
+  return { json: merged, source: 'instagram', signaux: hasSig(sigBrut) ? sigBrut : null };
+}
+
+async function findJsonInZip(zip) {
+  // ── TikTok : fichier unique user_data.json ──
+  const tikFile = zip.file(/user_data\.json$/i)[0];
+  if (tikFile) {
+    try { return { json: JSON.parse(await tikFile.async('text')), source: 'tiktok' }; } catch {}
+  }
+
+  // ── Instagram : construire un fileMap {path → json} ──────────
+  const igFolders = [
+    'instagram', 'your_instagram_activity', 'ads_information',
+    'connections', 'preferences', 'personal_information',
+    'logged_information', 'apps_and_websites',
+  ];
+  const igFilenames = [
+    /videos_watched\.json$/i, /posts_viewed\.json$/i, /ads_viewed\.json$/i,
+    /following\.json$/i, /followers.*\.json$/i,
+    /profile_searches\.json$/i, /word_or_phrase_searches\.json$/i, /recent_searches\.json$/i,
+    /saved_posts\.json$/i, /liked_posts\.json$/i,
+    /stories_viewed\.json$/i, /story_likes\.json$/i,
+    /your_topics\.json$/i, /ads_interests\.json$/i,
+    /account_searches\.json$/i, /reels_topics\.json$/i,
+    /see_less_topics\.json$/i,
+  ];
+
+  const fileMap = {};
+  const allJsonFiles = zip.file(/\.json$/i);
+  for (const f of allJsonFiles) {
+    const pl = f.name.toLowerCase();
+    if (pl.includes('/media/') || pl.includes('/files/')) continue;
+    const inIgFolder = igFolders.some(folder => pl.includes(folder));
+    const isIgFile   = igFilenames.some(p => p.test(f.name));
+    if (!inIgFolder && !isIgFile) continue;
+    try {
+      const json = JSON.parse(await f.async('text'));
+      if (typeof json === 'object' && json !== null) fileMap[f.name] = json;
+    } catch {}
+  }
+
+  if (Object.keys(fileMap).length > 0) {
+    const sig = extraireSignauxInstagramV2(fileMap);
+    if (hasSig(sig)) return { json: {}, source: 'instagram', signaux: sig };
+  }
+
+  // ── Fallback : scanner tout le ZIP sans présupposer la structure ──
+  // Utile si Instagram change encore son format en 2026+
+  const bruteForce = {};
+  for (const f of allJsonFiles) {
+    try {
+      const json = JSON.parse(await f.async('text'));
+      if (typeof json !== 'object' || json === null) continue;
+      // Reconnaître TikTok
+      if (json?.Activity || json?.Profile?.ProfileMap) return { json, source: 'tiktok' };
+      // Collecter tous les tableaux qui ressemblent à des sujets / comptes / recherches
+      for (const [key, val] of Object.entries(json)) {
+        if (Array.isArray(val) && val.length > 0) bruteForce[key] = val;
+      }
+    } catch {}
+  }
+
+  if (Object.keys(bruteForce).length > 0) {
+    // Tenter d'extraire des signaux depuis l'agrégat brut
+    const sig = extraireSignauxBruts(bruteForce);
+    if (hasSig(sig)) return { json: bruteForce, source: 'instagram', signaux: sig };
+  }
+
+  return { json: {}, source: 'declaratif_seul' };
+}
+
+// Extraction best-effort depuis un ZIP Instagram au format inconnu
+// Recherche récursive dans un JSON profondément imbriqué (ex: export Instagram single-file)
+// Ignore les strings base64 et les blobs de médias
+function extraireSignauxRecursif(root) {
+  const s = { comptes_suivis: [], themes_videos: [], recherches: [], favoris: [] };
+  const isBase64Like = v => typeof v === 'string' && v.length > 200 && /^[A-Za-z0-9+/=]{100,}$/.test(v.slice(0, 100));
+
+  // Clés connues Instagram → type de signal
+  const KEY_MAP = {
+    // Intérêts / topics
+    topics_your_topics:         'topic',  inferred_data_ig_interest: 'topic',
+    ig_interest:                'topic',  topics_you_follow:         'topic',
+    ads_interests:              'topic',  reels_topics:              'topic',
+    // Recherches
+    searches_user:              'search', account_searches:          'search',
+    // Comptes suivis
+    relationships_following:    'follow', following:                 'follow',
+    // Likes / favoris
+    likes_media_likes:          'like',   likes_comment_likes:       'like',
+    saved_saved_media:          'like',   media_likes:               'like',
+  };
+
+  function walk(node, depth) {
+    if (depth > 8 || node === null || typeof node !== 'object') return;
+    if (Array.isArray(node)) { node.forEach(item => walk(item, depth + 1)); return; }
+
+    for (const [key, val] of Object.entries(node)) {
+      const type = KEY_MAP[key];
+      if (type && Array.isArray(val)) {
+        for (const item of val.slice(0, 60)) {
+          if (isBase64Like(item)) continue;
+          const smd = item?.string_map_data;
+          const sld = item?.string_list_data;
+          if (type === 'topic') {
+            const v = (smd && Object.values(smd).map(x => x?.value).find(Boolean))
+              || item?.name || item?.value || (typeof item === 'string' ? item : null);
+            if (v && !isBase64Like(v)) s.themes_videos.push(v);
+          } else if (type === 'search') {
+            const v = (smd && (smd.Search?.value || smd.Query?.value || smd.Username?.value))
+              || item?.search_query || (typeof item === 'string' ? item : null);
+            if (v && !isBase64Like(v)) s.recherches.push(v);
+          } else if (type === 'follow') {
+            const v = Array.isArray(sld) ? sld[0]?.value : (smd?.Username?.value || item?.username);
+            if (v && !isBase64Like(v)) s.comptes_suivis.push(v);
+          } else if (type === 'like') {
+            const href = Array.isArray(sld) ? sld[0]?.href : item?.href;
+            const c = extraireCompte(href || '');
+            if (c) s.favoris.push(c);
+            // Parfois le titre contient le nom du compte
+            if (item?.title && !isBase64Like(item.title)) s.favoris.push(item.title);
+          }
+        }
+      } else if (typeof val === 'object') {
+        walk(val, depth + 1);
+      }
+    }
+  }
+
+  walk(root, 0);
+  s.themes_videos  = [...new Set(s.themes_videos)].slice(0, 40);
+  s.comptes_suivis = [...new Set(s.comptes_suivis)].slice(0, 30);
+  s.recherches     = [...new Set(s.recherches)].slice(0, 20);
+  s.favoris        = [...new Set(s.favoris)].slice(0, 15);
+  return s;
+}
+
+function extraireSignauxBruts(data) {
+  const s = { comptes_suivis: [], themes_videos: [], recherches: [], favoris: [] };
+  for (const [key, arr] of Object.entries(data)) {
+    if (!Array.isArray(arr)) continue;
+    const kl = key.toLowerCase();
+    for (const item of arr.slice(0, 50)) {
+      // Extraire string_map_data (format Meta universel)
+      const smd = item?.string_map_data;
+      const vals = smd ? Object.values(smd).map(v => v?.value || v?.href).filter(Boolean) : [];
+      // Classifier selon le nom de clé
+      if (/topic|interest|sujet|interet|categor/i.test(kl)) {
+        const v = vals[0] || item?.name || (typeof item === 'string' ? item : null);
+        if (v) s.themes_videos.push(v);
+      } else if (/search|recherch/i.test(kl)) {
+        const v = vals[0] || item?.search_query || item?.query || (typeof item === 'string' ? item : null);
+        if (v) s.recherches.push(v);
+      } else if (/follow|subscri|abonn/i.test(kl)) {
+        const v = vals.find(v => !v.startsWith('http')) || vals[0] || item?.username || item?.name;
+        if (v) s.comptes_suivis.push(typeof v === 'string' ? v : String(v));
+      } else if (/like|fav|saved/i.test(kl)) {
+        const href = vals.find(v => v.startsWith('http')) || item?.href;
+        const compte = extraireCompte(href || '');
+        if (compte) s.favoris.push(compte);
+      }
+    }
+  }
+  s.themes_videos  = [...new Set(s.themes_videos)].slice(0, 40);
+  s.comptes_suivis = [...new Set(s.comptes_suivis)].slice(0, 30);
+  s.recherches     = [...new Set(s.recherches)].slice(0, 20);
+  s.favoris        = [...new Set(s.favoris)].slice(0, 15);
+  return s;
+}
+
+/* ─── Mode démo ─────────────────────────────────────────────── */
+async function loadDemoData() {
+  state.signaux = DEMO_INLINE;
+  state.sourceDonnees = 'tiktok';
+  state.hasFile = true;
+  state.isDemo  = true;
+
+  document.getElementById('f-prenom').value      = 'Tony';
+  document.getElementById('f-age').value         = '16';
+  document.getElementById('f-situation').value   = 'lycee_general';
+  updatePrecisionField();
+  document.getElementById('f-precision').value   = '2nde (spécialités pas encore choisies)';
+  document.getElementById('f-aime').value        = 'Le foot, les jeux vidéo, construire des trucs, la mécanique et bidouiller des objets. J\'aime aussi regarder des vidéos sur la création de contenu et le design.';
+  document.getElementById('f-dislike').value     = 'Rester assis à écouter des cours magistraux, faire des rédactions et tout ce qui est trop théorique sans application concrète.';
+  document.getElementById('f-competences').value = 'Bricoler / réparer, apprendre tout seul avec des tutos, monter des vidéos simples';
+  document.getElementById('consent-main').checked = true; // démo : consentement pré-coché
+
+  markFileLoaded('tony_demo.json (démo)');
+  toast('Données de démo chargées ✓', 'success');
+}
+
+function launchDemo() { showScreen('form'); setTimeout(loadDemoData, 350); }
+
+// Données inline déjà au format signaux (secours si tony_demo.json introuvable)
+const DEMO_INLINE = {
+  comptes_suivis: ['meca_pro_france', 'diy_woodworking', 'graphic_design_tips', 'gaming_strategy_fr', 'chef_cuisine_pro', 'entrepreneur_mindset', 'street_art_paris', 'indie_game_dev_fr', 'carrosserie_pro'],
+  themes_videos:  ['@meca_pro', '@diy_wood_builds', '@design_graphique_fr', '@entrepreneur_fr', '@streetart_world', '@gaming_strategy', '@chef_cuisine_pro', '@carrosserie_bro'],
+  recherches:     ['comment créer une app', 'CAP carrosserie salaire', 'formations courtes bien payées', 'recette barbecue américain', 'comment apprendre design graphique', 'BTS design débouchés', 'auto-entrepreneur mineur'],
+  favoris:        ['@entrepreneur_fr', '@streetart_world', '@meca_pro', '@design_graphique_fr'],
+  patterns_horaires: 'Activité concentrée entre 22h00 et 01h00 (signal fort à explorer)',
+  frequence:         'Utilisation quotidienne estimée 3-5h',
+  bio:               '16 ans • foot • gaming • je construis des trucs',
+};
+
+/* ─── Homogénéité du feed (heuristique lexicale) ────────────── */
+/* Indicateur indicatif transmis à l'IA (GF4) : part des signaux
+   contenant le token dominant. L'IA affine avec sa propre lecture. */
+function computeHomogeneite(signaux) {
+  if (!signaux) return null;
+  const items = [
+    ...(signaux.comptes_suivis || []), ...(signaux.themes_videos || []),
+    ...(signaux.recherches || []),     ...(signaux.favoris || []),
+    ...(signaux.extraits_legendes || []),
+  ].map(s => String(s).toLowerCase());
+  if (items.length < 5) return { total: items.length, lecture: 'trop peu de signaux pour évaluer' };
+  const stop = new Set(['comment','pour','avec','dans','les','des','the','and','une','un','le','la','de','du','en','et','sur','fr','pro','off','officiel','tik','tok']);
+  const freq = {};
+  items.forEach(it => {
+    const tokens = new Set(it.split(/[^a-zà-ÿ0-9]+/).filter(t => t.length >= 4 && !stop.has(t)));
+    tokens.forEach(t => { freq[t] = (freq[t] || 0) + 1; });
+  });
+  const top = Object.entries(freq).sort((a, b) => b[1] - a[1])[0];
+  if (!top) return { total: items.length, lecture: 'signaux trop hétérogènes pour dégager un token dominant' };
+  const part = Math.round((top[1] / items.length) * 100);
+  return {
+    total: items.length,
+    token_dominant: top[0],
+    part_dominante: part,
+    lecture: part >= 50 ? 'feed probablement très homogène — chercher activement les angles morts'
+           : part >= 25 ? 'feed moyennement concentré'
+           : 'feed plutôt diversifié',
+  };
+}
+
+/* ─── Construction du user prompt (dynamique) ───────────────── */
+function buildUserPrompt(fd, signaux, sourceDonnees) {
+  function fmt(arr) {
+    if (!arr || arr.length === 0) return '  — Aucune donnée disponible —';
+    return arr.map(i => '  • ' + i).join('\n');
+  }
+  const hasBD    = hasSig(signaux) && sourceDonnees !== 'declaratif_seul';
+  const isAdulte = /^adulte/.test(fd.situationId || '');
+  const homog    = computeHomogeneite(signaux);
+  return `PROFIL À ANALYSER :
+
+— Identité —
+Prénom : ${fd.prenom}
+Âge : ${fd.age} ans
+Parcours : ${isAdulte ? 'ADULTE EN RECONVERSION (appliquer R5 : formations éligibles CPF, tenir compte de l\'expérience acquise)' : 'jeune'}
+Situation de formation : ${fd.situation || 'Non précisée'}${fd.precision ? ' — ' + fd.precision : ''}
+
+— Déclaratif (recueilli via formulaire) —
+Ce qu'il/elle dit aimer : "${fd.aime || 'Non précisé'}"
+Ce qu'il/elle dit ne pas aimer : "${fd.dislike || 'Non précisé'}"
+Compétences auto-évaluées ("quelles sont tes compétences selon toi ?") : "${fd.competences || 'Non renseigné'}"
+${fd.competences ? '→ Croise cette auto-évaluation avec les signaux comportementaux (R1) : fais ressortir les écarts en entretien.' : ''}
+${homog ? `
+— Indicateur d'homogénéité du feed (heuristique lexicale, indicatif — GF4) —
+${homog.total} signaux extraits.${homog.token_dominant ? ` Token dominant : "${homog.token_dominant}" présent dans ${homog.part_dominante}% des signaux.` : ''} Lecture : ${homog.lecture}.` : ''}
+
+— Source des données comportementales —
+${!hasBD
+  ? '⚠️ Aucun fichier uploadé. Analyse basée uniquement sur le déclaratif. Signale ce manque dans meta.niveau_certitude.'
+  : 'Plateforme(s) : ' + (sourceDonnees === 'instagram+tiktok' ? 'Instagram + TikTok (données combinées)'
+      : sourceDonnees === 'tiktok' ? 'TikTok' : 'Instagram')
+}
+${hasBD ? `
+— Signaux comportementaux extraits —
+
+COMPTES SUIVIS (${signaux.comptes_suivis?.length || 0} comptes — échantillon) :
+${fmt(signaux.comptes_suivis?.slice(0, 30))}
+
+HASHTAGS ET THÈMES DÉTECTÉS (depuis vidéos/posts) :
+${fmt(signaux.themes_videos)}
+
+EXTRAITS DE LÉGENDES (contenus visionnés/sauvegardés — inférer les centres d'intérêt) :
+${signaux.extraits_legendes?.length
+  ? signaux.extraits_legendes.map((l, i) => `  [${i + 1}] "${l}"`).join('\n')
+  : '  — Non disponible —'}
+
+RECHERCHES RÉCENTES :
+${fmt(signaux.recherches)}
+
+COMPTES LIKÉS / SAUVEGARDÉS (${signaux.favoris?.length || 0} comptes — échantillon) :
+${fmt(signaux.favoris?.slice(0, 20))}
+
+PATTERNS HORAIRES :
+${signaux.patterns_horaires ? '  ' + signaux.patterns_horaires : '  — Non disponible —'}
+
+FRÉQUENCE D'UTILISATION :
+${signaux.frequence ? '  ' + signaux.frequence : '  — Non disponible —'}
+${signaux.bio ? '\nBIO DU PROFIL :\n  "' + signaux.bio + '"' : ''}
+` : ''}
+CONSIGNE : Génère le rapport d'orientation complet au format JSON défini dans tes instructions système. Identifie le domaine avec le mot exact de la personne, appuie chaque niveau de signal sur une preuve, propose au moins une piste fenêtre (hors feed), et documente angles morts et inférences risquées pour le conseiller. Aucun score chiffré.`.trim();
+}
+
+/* ─── Flux d'analyse ────────────────────────────────────────── */
+async function runAnalysis() {
+  // Lire le formulaire
+  state.apiKey = document.getElementById('api-key').value.trim();
+  const sitId = document.getElementById('f-situation').value;
+  state.formData = {
+    prenom:      document.getElementById('f-prenom').value.trim(),
+    age:         document.getElementById('f-age').value,
+    situationId: sitId,
+    situation:   sitId ? situationLabel(sitId) : '',
+    precision:   document.getElementById('f-precision').value.trim(),
+    aime:        document.getElementById('f-aime').value.trim(),
+    dislike:     document.getElementById('f-dislike').value.trim(),
+    competences: document.getElementById('f-competences').value.trim(),
+  };
+
+  showScreen('analysis');
+  resetSteps();
+
+  try {
+    await activateStep(1, 0,  'Lecture des données…');         await pause(600);
+    await activateStep(2, 25, 'Extraction des intérêts…');     await pause(500);
+    await activateStep(3, 50, 'Analyse comportementale…');
+
+    const prompt = buildUserPrompt(state.formData, state.signaux, state.sourceDonnees);
+    const isAdulte = /^adulte/.test(state.formData.situationId || '');
+
+    await activateStep(4, 65, 'Appel à l\'IA en cours…');
+    const raw = await callClaude(state.apiKey, prompt, isAdulte);
+    state.report = parseJSON(raw);
+
+    await activateStep(5, 90, 'Finalisation du rapport…');
+    await pause(500);
+    setProgress(100);
+    await pause(600);
+
+    stopPhraseRoll();
+    drawReport(state.report);
+    showScreen('report');
+
+  } catch (err) {
+    showError(err.message || 'Une erreur inattendue est survenue.');
+  }
+}
+
+/* ─── Helpers animation ─────────────────────────────────────── */
+function pause(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function setProgress(pct) {
+  document.getElementById('pbar').style.width = pct + '%';
+}
+
+function resetSteps() {
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('step-' + i);
+    el.className = 'step-row pending';
+    el.querySelector('.step-icon').textContent = i;
+  }
+  setProgress(0);
+  startPhraseRoll();
+}
+
+/* ─── Roulement des phrases d'attente ───────────────────────── */
+let _phraseTimer = null;
+let _phraseIdx   = 0;
+
+function startPhraseRoll() {
+  stopPhraseRoll();
+  const phrases = (window.LOADING_PHRASES || []).slice();
+  if (phrases.length === 0) return;
+  // Mélange Fisher-Yates
+  for (let i = phrases.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [phrases[i], phrases[j]] = [phrases[j], phrases[i]];
+  }
+  _phraseIdx = 0;
+  const cur  = document.getElementById('phrase-current');
+  const next = document.getElementById('phrase-next');
+  const inner = document.getElementById('phrase-inner');
+  if (!cur || !next || !inner) return;
+
+  function roll() {
+    const txt = phrases[_phraseIdx % phrases.length];
+    next.textContent = txt;
+    inner.style.transition = 'transform 0.55s cubic-bezier(0.4,0,0.2,1)';
+    inner.style.transform  = 'translateY(-52px)';
+    setTimeout(() => {
+      inner.style.transition = 'none';
+      inner.style.transform  = 'translateY(0)';
+      cur.textContent = txt;
+      next.textContent = '';
+      _phraseIdx++;
+    }, 580);
+  }
+
+  cur.textContent = phrases[0];
+  _phraseIdx = 1;
+  _phraseTimer = setInterval(roll, 4000);
+}
+
+function stopPhraseRoll() {
+  if (_phraseTimer) { clearInterval(_phraseTimer); _phraseTimer = null; }
+  const inner = document.getElementById('phrase-inner');
+  if (inner) { inner.style.transition = 'none'; inner.style.transform = 'translateY(0)'; }
+}
+
+async function activateStep(n, pct, text) {
+  for (let i = 1; i < n; i++) {
+    const el = document.getElementById('step-' + i);
+    el.className = 'step-row done';
+    el.querySelector('.step-icon').textContent = '✓';
+  }
+  const cur = document.getElementById('step-' + n);
+  cur.className = 'step-row active';
+  setProgress(pct);
+  document.getElementById('step-text').textContent = text;
+}
+
+/* ─── Appel IA : via proxy backend (production) ou direct (pilote) ─ */
+async function callClaude(apiKey, userPrompt, isAdulte) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), API_TIMEOUT_MS);
+  const system = buildSystemPrompt(isAdulte);
+  const messages = [{ role: 'user', content: userPrompt }];
+
+  try {
+    let res;
+    if (USE_BACKEND()) {
+      // Mode production : le proxy détient la clé, aucune clé côté client.
+      const accessCode = (document.getElementById('access-code')?.value || '').trim();
+      res = await fetch(PROXY_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessCode ? { 'x-access-code': accessCode } : {}),
+        },
+        body: JSON.stringify({ model: CLAUDE_MODEL, max_tokens: 8000, system, messages }),
+        signal: ctrl.signal,
+      });
+    } else {
+      // Mode pilote : appel direct, clé dans le navigateur (usage interne uniquement).
+      res = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({ model: CLAUDE_MODEL, max_tokens: 8000, system, messages }),
+        signal: ctrl.signal,
+      });
+    }
+
+    clearTimeout(timer);
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      if (res.status === 401) throw new Error('Clé API invalide. Vérifie ta clé Anthropic sur console.anthropic.com.');
+      if (res.status === 429) throw new Error('Limite de requêtes atteinte. Attends quelques secondes et réessaie.');
+      throw new Error(body?.error?.message || `Erreur API (${res.status})`);
+    }
+
+    const data = await res.json();
+    // Proxy → { text } ; API directe → { content:[{text}] }
+    return USE_BACKEND() ? data.text : data.content[0].text;
+
+  } catch (err) {
+    clearTimeout(timer);
+    if (err.name === 'AbortError') throw new Error('L\'analyse a pris trop longtemps. Vérifie ta connexion et réessaie.');
+    throw err;
+  }
+}
+
+/* ─── Parsing JSON réponse Claude ───────────────────────────── */
+function parseJSON(raw) {
+  let s = raw.trim();
+  // Retire les balises markdown éventuelles
+  s = s.replace(/^```json\s*/i, '').replace(/\s*```$/m, '');
+  s = s.replace(/^```\s*/,      '').replace(/\s*```$/m, '');
+  // Extrait l'objet JSON
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if (a !== -1 && b !== -1) s = s.slice(a, b + 1);
+
+  try { return JSON.parse(s); }
+  catch {
+    s = s.replace(/,(\s*[}\]])/g, '$1');
+    try { return JSON.parse(s); }
+    catch {
+      const preview = raw ? raw.slice(0, 300) : '(vide)';
+      throw new Error('JSON tronqué ou invalide. Début reçu : ' + preview);
+    }
+  }
+}
+
+/* ─── Affichage erreur ──────────────────────────────────────── */
+function showError(msg) {
+  document.getElementById('screen-analysis').innerHTML = `
+    <div class="error-state">
+      <div class="icon">⚠️</div>
+      <h2>Analyse impossible</h2>
+      <p>${escHtml(msg)}</p>
+      <div class="error-btns">
+        <button class="btn btn-primary" onclick="showScreen('form')">← Corriger et réessayer</button>
+        <button class="btn btn-ghost" onclick="useFallback()">Voir un rapport de démo</button>
+      </div>
+    </div>
+  `;
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ─── Rapport de secours ────────────────────────────────────── */
+function useFallback() {
+  state.report = FALLBACK_REPORT;
+  if (!state.formData.prenom) state.formData = { prenom: 'Tony', age: '16', situationId: 'lycee_general', situation: 'Lycée général', precision: '2nde' };
+  drawReport(FALLBACK_REPORT);
+  showScreen('report');
+}
+
+const FALLBACK_REPORT = {
+  meta: { niveau_certitude: 'moyen', source_principale: 'mixte', homogeneite_feed: 'moyenne', cas_sensible_detecte: false, type_cas_sensible: null, note_methodologique: 'Rapport de démonstration — données simulées de Tony, 16 ans. Le feed analysé reflète en partie l\'algorithme de la plateforme, pas seulement la personne.' },
+  profil: { type: 'Le Créateur Pragmatique', headline_jeune: 'Tu construis des choses pour voir si ça tient. C\'est ton mode de pensée.', headline_rapport: 'Un profil manuel et entrepreneurial qui apprend mieux en faisant qu\'en lisant.', couleur_dominante: 'green' },
+  domaine: {
+    principal: {
+      nom: 'la fabrication & la customisation',
+      univers: 'CONSTRUCTION & AMÉNAGEMENT / VÉHICULES & MÉCANIQUE (croisement)',
+      signal: 'fort',
+      phrase_jeune: 'Ton truc, c\'est de fabriquer et transformer des objets de tes mains — du bois à la carrosserie. Pas juste regarder : comprendre comment c\'est fait, puis le refaire à ta façon.',
+      preuves: [
+        '@diy_woodworking, @meca_pro_france et @carrosserie_pro suivis — trois comptes de fabrication concrète',
+        'Recherche "CAP carrosserie salaire" : tu as déjà cherché la voie toi-même',
+        'Activité concentrée entre 22h et 1h sur des tutos de construction — signal nocturne pondéré 2x',
+      ],
+    },
+    secondaires: [
+      { nom: 'le design graphique', signal: 'moyen', preuves: ['@graphic_design_tips suivi + recherche "comment apprendre design graphique"'] },
+    ],
+  },
+  facettes: [
+    { verbe: 'Fabriquer',          riasec: 'R',   signal: 'fort',  preuve: 'Tutos DIY et construction regardés en boucle' },
+    { verbe: 'Personnaliser',      riasec: 'A-R', signal: 'fort',  preuve: 'Carrosserie + streetart + design : transformer plutôt que produire en série' },
+    { verbe: 'Entreprendre',       riasec: 'E',   signal: 'moyen', preuve: 'Recherche "auto-entrepreneur mineur" + @entrepreneur_mindset' },
+  ],
+  riasec: { dominantes: ['R', 'A'], lecture_conseiller: 'Profil Réaliste-Artistique : besoin de concret ET d\'expression personnelle. Les métiers de pure exécution comme de pure conception risquent de le lasser ; chercher les métiers où l\'on fabrique du singulier.' },
+  interets: [
+    { label: 'Design & création',   intensite: 'forte',   taille: 'lg', couleur: 'green',  source: 'comportemental' },
+    { label: 'Mécanique / DIY',     intensite: 'forte',   taille: 'lg', couleur: 'purple', source: 'comportemental' },
+    { label: 'Gaming stratégique',  intensite: 'moyenne', taille: 'md', couleur: 'amber',  source: 'comportemental' },
+    { label: 'Entrepreneuriat',     intensite: 'moyenne', taille: 'md', couleur: 'green',  source: 'inféré'         },
+    { label: 'Cuisine créative',    intensite: 'faible',  taille: 'sm', couleur: 'coral',  source: 'comportemental' },
+    { label: 'Sports collectifs',   intensite: 'faible',  taille: 'sm', couleur: 'purple', source: 'déclaratif'     },
+  ],
+  hypotheses: [
+    { nom: 'Apprentissage par l\'expérience', type: 'intérêt observé',       signal: 'fort',  couleur: 'green',  signal_source: '47 tutoriels DIY regardés sur 3 semaines', question_conversation: 'T\'as appris à faire quoi tout seul dont tu es le plus fier ?' },
+    { nom: 'Sens visuel / créativité',        type: 'aptitude à vérifier',   signal: 'moyen', couleur: 'purple', signal_source: 'Comptes design + favoris streetart — l\'intérêt est prouvé, l\'aptitude reste à tester (un book, un projet)', question_conversation: 'T\'as déjà dessiné ou créé un visuel pour quelqu\'un ?' },
+    { nom: 'Esprit entrepreneurial',          type: 'adéquation à explorer', signal: 'moyen', couleur: 'amber',  signal_source: 'Recherche "auto-entrepreneur mineur" — l\'envie existe, reste à voir si le quotidien entrepreneurial lui conviendrait', question_conversation: 'T\'as déjà eu une idée de truc que tu voudrais lancer ou créer ?' },
+    { nom: 'Travail en équipe réduite',       type: 'adéquation à explorer', signal: 'faible', couleur: 'green', signal_source: 'Foot mentionné + absence de contenus collaboratifs — signal fragile, à confirmer en entretien', question_conversation: 'Tu préfères bosser seul, à deux, ou en groupe ?' },
+  ],
+  insight: {
+    texte_jeune: 'Tes recherches les plus intenses se font après 23h — c\'est là que tu cherches vraiment, sans public. Ce que tu cherches à ce moment-là est peut-être la piste la plus honnête de ce qui t\'intéresse vraiment.',
+    texte_conseiller: 'Pattern d\'apprentissage nocturne isolé = probable décalage entre ses centres d\'intérêt réels et ce qu\'il partage avec ses pairs. À explorer : est-ce qu\'il vit ses intérêts (mécanique, design) comme "pas cool" dans son entourage ?',
+    question_conversation: 'Si tu pouvais apprendre n\'importe quoi demain sans que personne le sache, tu apprendrais quoi ?',
+  },
+  pistes: [
+    { emoji: '🔧', nom: 'Carrossier-peintre / customisateur', signal: 'fort', connu_du_jeune: true, fenetre: false, pourquoi_fenetre: null, description_jeune: 'Tu répares et transformes des véhicules — jusqu\'à la customisation complète. Chaque résultat est visible : tu vois ce que tu as fait.', pourquoi_toi: 'Recherche "CAP carrosserie salaire" + @carrosserie_pro : tu y penses déjà. Et ta facette "personnaliser" en fait plus qu\'un métier de réparation.', voies_acces: [{ formation: 'CAP Carrosserie (puis Bac Pro RC)', duree: '2 ans', niveau_requis: '3ème', type: 'apprentissage', eligible_cpf: false, salaire_indicatif: null }], tension_marche: 'forte', tags: ['Manuel', 'Créatif', 'Concret'], top: true, question_conversation: 'Si on te confiait une voiture à transformer librement, tu en ferais quoi ?' },
+    { emoji: '🎨', nom: 'Peintre customisateur moto / auto', signal: 'moyen', connu_du_jeune: false, fenetre: false, pourquoi_fenetre: null, description_jeune: 'Le croisement exact de tes deux domaines : la mécanique ET le graphisme. Tu peins des réservoirs, des carrosseries, des casques — des pièces uniques.', pourquoi_toi: 'Mécanique + design + streetart dans tes données : c\'est LE croisement que peu de gens ont.', voies_acces: [{ formation: 'CAP Carrosserie option peinture + book artistique', duree: '2 ans', niveau_requis: '3ème', type: 'apprentissage', eligible_cpf: false, salaire_indicatif: null }], tension_marche: 'correcte', tags: ['Croisement', 'Créatif', 'Rare'], top: false, question_conversation: 'Tu connais des artistes qui peignent des motos ou des casques ? Ça t\'évoque quoi ?' },
+    { emoji: '🖌️', nom: 'Scénographe / constructeur de décors', signal: 'moyen', connu_du_jeune: false, fenetre: true, pourquoi_fenetre: 'Ce métier n\'apparaît nulle part dans ton feed — normal, personne n\'en fait des vidéos virales. Mais il croise exactement tes facettes : fabriquer + personnaliser + sens visuel. On te le montre parce que ton algorithme ne le fera jamais.', description_jeune: 'Tu construis les décors d\'événements, de spectacles, de plateaux télé. Un mélange de menuiserie, de design et de systèmes D que peu de gens connaissent.', pourquoi_toi: 'DIY bois + streetart + création visuelle = le profil type de l\'atelier décor.', voies_acces: [{ formation: 'CAP Menuisier puis DN MADE Scénographie', duree: '2 + 3 ans', niveau_requis: '3ème', type: 'classique', eligible_cpf: false, salaire_indicatif: null }], tension_marche: 'correcte', tags: ['Fenêtre', 'Visuel', 'Atelier'], top: false, question_conversation: 'T\'es déjà allé dans un endroit où l\'ambiance t\'a vraiment frappé ? Tu crois que quelqu\'un l\'a fabriquée ?' },
+    { emoji: '🚀', nom: 'Artisan à son compte (customisation)', signal: 'moyen', connu_du_jeune: true, fenetre: false, pourquoi_fenetre: null, description_jeune: 'À terme : ton propre atelier de customisation. Tu factures des pièces uniques, tu construis ta réputation en ligne — tu sais déjà faire du contenu.', pourquoi_toi: 'Ta recherche "auto-entrepreneur mineur" montre que l\'idée est déjà là. La voie : d\'abord le métier (CAP + expérience), ensuite l\'indépendance.', voies_acces: [{ formation: 'CAP + Brevet de Maîtrise + accompagnement création (BGE, CCI)', duree: '4-6 ans', niveau_requis: '3ème', type: 'apprentissage', eligible_cpf: false, salaire_indicatif: null }], tension_marche: 'correcte', tags: ['Entreprendre', 'Long terme'], top: false, question_conversation: 'C\'est quoi qui t\'attire dans l\'idée d\'être à ton compte : la liberté, l\'argent, ou faire les choses à ta façon ?' },
+  ],
+  environnements: [
+    { emoji: '🛠️', titre: 'Atelier ou studio',       sous: 'Faire avec ses mains, voir le résultat',     signal_source: 'DIY + mécanique dominent le visionnage' },
+    { emoji: '💻', titre: 'Environnement numérique',  sous: 'Créer et concevoir sur écran',               signal_source: null },
+    { emoji: '🏃', titre: 'Terrain et mouvement',     sous: 'Pas de bureau toute la journée',             signal_source: 'Foot + pas de contenu "bureau"' },
+    { emoji: '👥', titre: 'Petite équipe soudée',     sous: 'Pas de grande hiérarchie',                   signal_source: null },
+  ],
+  conseiller: {
+    lecture_globale: 'Tony présente un profil créateur-praticien (RIASEC R-A) : la cohérence entre ses données comportementales (mécanique, design, DIY) et son déclaratif est forte, ce qui indique des intérêts structurants. Son rapport au salaire dès 16 ans et ses recherches sur les formations courtes indiquent une maturité économique à valoriser en entretien.',
+    angles_morts: 'Le feed est saturé de contenus manuels et créatifs mais ne montre aucun métier du spectacle, de l\'événementiel ou du patrimoine — des univers pourtant cohérents avec ses facettes (fabriquer + personnaliser). La piste scénographe a été ajoutée précisément pour ouvrir cette fenêtre. À explorer aussi : la restauration d\'objets anciens.',
+    inferences_risquees: [
+      '"Travail en équipe réduite" repose sur une absence de signal, pas sur un signal — à confirmer en entretien avant d\'en tenir compte.',
+      'Le sens visuel est un intérêt prouvé mais une aptitude non vérifiée : proposer un petit projet concret avant d\'orienter vers un cursus design.',
+    ],
+    points_attention: [],
+    questions_a_poser: ['Y a-t-il des matières où tu te sens bien, même si t\'aimes pas l\'école en général ?', 'T\'as déjà fabriqué ou créé quelque chose dont tu étais vraiment fier — même hors école ?', 'Si tu pouvais tester un métier pendant 2 semaines sans engagement, ce serait lequel ?'],
+    a_ne_pas_faire: ['Éviter de parler de "carrière à long terme" — ce profil est très ancré dans le présent et le concret.', 'Ne pas présenter les voies courtes (CAP, BTS) comme des choix par défaut — les présenter comme des accès rapides à l\'autonomie.'],
+    conseil_actionnable: 'Propose-lui de regarder une journée-type d\'un carrossier-customisateur ou d\'un atelier décor sur YouTube avant la prochaine séance — il comprendra mieux par le concret que par une fiche ONISEP.',
+    ressources_suggerer: [
+      { nom: 'ONISEP — fiche métier Carrossier', type: 'fiche métier', url_type: 'onisep.fr' },
+      { nom: 'Alternance.emploi.gouv.fr — CAP Carrosserie', type: 'alternance', url_type: 'alternance' },
+      { nom: 'ONISEP — fiche métier Scénographe', type: 'fiche métier', url_type: 'onisep.fr' },
+    ],
+  },
+};
+
+/* ─── Rendu du rapport ──────────────────────────────────────── */
+function drawReport(d) {
+  const fd = state.formData;
+
+  const profilType  = d.profil?.type || d.profil_type || '–';
+  const headline    = d.profil?.headline_jeune || d.headline || '–';
+
+  // Hero
+  document.getElementById('rh-avatar').textContent   = (fd.prenom || 'J')[0].toUpperCase();
+  document.getElementById('rh-badge').textContent    = profilType;
+  document.getElementById('rh-name').textContent     = fd.prenom || 'Jeune';
+  document.getElementById('rh-meta').textContent     = [fd.age && fd.age + ' ans', fd.situation, fd.precision].filter(Boolean).join(' · ');
+  document.getElementById('rh-headline').textContent = headline;
+
+  // Bannière méta
+  handleMeta(d.meta || {});
+
+  // Domaine (principal + secondaires + facettes)
+  document.getElementById('domaine-block').innerHTML = domaineBlock(d.domaine, d.facettes);
+
+  // Intérêts
+  const interets = d.interets || d.interets_principaux || [];
+  document.getElementById('tag-cloud').innerHTML = interets.map(interestTag).join('');
+
+  // Insight (nouveau: objet, ancien: string)
+  if (d.insight && typeof d.insight === 'object') {
+    document.getElementById('insight-quote').textContent = d.insight.texte_jeune || '–';
+    const iq = document.getElementById('insight-question');
+    if (d.insight.question_conversation) { iq.textContent = d.insight.question_conversation; iq.style.display = 'block'; }
+  } else {
+    document.getElementById('insight-quote').textContent = d.insight || '–';
+  }
+
+  // Hypothèses (compat : d.hypotheses, ancien d.traits)
+  const hyps = d.hypotheses || d.traits || [];
+  document.getElementById('traits-list').innerHTML = hyps.map(hypRow).join('');
+
+  // Portes d'entrée (compat : d.pistes, ancien d.metiers)
+  const jobs  = d.pistes || d.metiers || [];
+  const topJ  = jobs.find(j => j.top);
+  const order = topJ ? [topJ, ...jobs.filter(j => !j.top)] : jobs;
+  document.getElementById('jobs-grid').innerHTML = order.map(jobCard).join('');
+
+  // Environnements
+  document.getElementById('envs-grid').innerHTML = (d.environnements || []).map(e => `
+    <div class="env-card">
+      <div class="env-emoji">${escHtml(e.emoji)}</div>
+      <div>
+        <div class="env-title">${escHtml(e.titre)}</div>
+        <div class="env-sub">${escHtml(e.sous)}</div>
+        ${e.signal_source ? `<div class="signal-badge">📊 ${escHtml(e.signal_source)}</div>` : ''}
+      </div>
+    </div>`).join('');
+
+  // Section conseiller
+  const insightCons = (d.insight && typeof d.insight === 'object') ? d.insight.texte_conseiller : null;
+  drawCounselor(d.conseiller || d, d.meta || {}, insightCons);
+}
+
+function handleMeta(meta) {
+  const disc = document.getElementById('report-disclaimer');
+  if (!disc) return;
+  const certBadge = document.getElementById('certitude-badge');
+  const certMap   = { 'élevé': 'certitude-high', 'moyen': 'certitude-med', 'faible': 'certitude-low' };
+  const certLabel = { 'élevé': '✓ Analyse fiable', 'moyen': '~ Données partielles', 'faible': '⚠ Données limitées' };
+  if (meta.niveau_certitude && certBadge) {
+    certBadge.innerHTML = `<span class="certitude-badge ${certMap[meta.niveau_certitude] || 'certitude-med'}">${certLabel[meta.niveau_certitude] || meta.niveau_certitude}</span>`;
+  }
+  if (meta.niveau_certitude && meta.niveau_certitude !== 'élevé' && meta.note_methodologique) {
+    disc.style.display = 'block';
+    document.getElementById('disclaimer-text').textContent = meta.note_methodologique;
+  }
+}
+
+function drawCounselor(c, meta, insightCons) {
+  // Insight conseiller
+  const insBox  = document.getElementById('counselor-insight-box');
+  const insText = document.getElementById('counselor-insight-text');
+  if (insightCons && insBox && insText) { insBox.style.display = 'block'; insText.textContent = insightCons; }
+
+  if (c.lecture_globale) {
+    // Nouveau schéma
+    document.getElementById('counselor-lecture').textContent = c.lecture_globale;
+
+    // Angles morts du feed + inférences risquées (garde-fous GF2/GF5)
+    const gfEl = document.getElementById('counselor-gardefous');
+    if (gfEl) {
+      let gfHtml = '';
+      if (c.angles_morts) {
+        gfHtml += `<div class="angles-morts-box">
+          <div class="angles-morts-label">🔭 Angles morts du feed</div>
+          <p class="angles-morts-text">${escHtml(c.angles_morts)}</p>
+        </div>`;
+      }
+      if (c.inferences_risquees?.length > 0) {
+        gfHtml += `<div class="angles-morts-box" style="border-left-color:var(--amber)">
+          <div class="angles-morts-label" style="color:var(--amber)">⚖️ Inférences à prendre avec prudence</div>
+          ${c.inferences_risquees.map(i => `<p class="angles-morts-text" style="margin-bottom:6px">• ${escHtml(i)}</p>`).join('')}
+        </div>`;
+      }
+      gfEl.innerHTML = gfHtml;
+      gfEl.style.display = gfHtml ? 'block' : 'none';
+    }
+
+    const attEl = document.getElementById('counselor-attention');
+    if (c.points_attention && c.points_attention.length > 0) {
+      attEl.style.display = 'block';
+      attEl.innerHTML = '<div class="counselor-sub-title">⚠ Points d\'attention</div>' +
+        c.points_attention.map(p => `
+          <div class="attention-box" style="margin-bottom:10px">
+            <div class="attention-label">${escHtml(p.type?.toUpperCase() || 'ATTENTION')}</div>
+            <p class="attention-text"><strong>Signal :</strong> ${escHtml(p.signal || '')}</p>
+            ${p.interpretation ? `<p class="attention-text"><strong>Lecture :</strong> ${escHtml(p.interpretation)}</p>` : ''}
+            ${p.action_recommandee ? `<p class="attention-text"><strong>Action :</strong> ${escHtml(p.action_recommandee)}</p>` : ''}
+          </div>`).join('');
+    }
+
+    const qEl = document.getElementById('counselor-questions');
+    if (qEl && c.questions_a_poser) qEl.innerHTML = c.questions_a_poser.map(q => `<li>${escHtml(q)}</li>`).join('');
+
+    const aEl = document.getElementById('counselor-avoid');
+    if (aEl && c.a_ne_pas_faire) aEl.innerHTML = c.a_ne_pas_faire.map(a => `<li>${escHtml(a)}</li>`).join('');
+
+    const acEl = document.getElementById('counselor-action');
+    if (acEl) acEl.textContent = c.conseil_actionnable || '–';
+
+    const rWrap = document.getElementById('counselor-resources-wrap');
+    const rEl   = document.getElementById('counselor-resources');
+    if (c.ressources_suggerer?.length > 0 && rWrap && rEl) {
+      rWrap.style.display = 'block';
+      rEl.innerHTML = c.ressources_suggerer.map(r => `
+        <div class="resource-item">
+          <span class="resource-type">${escHtml(r.type || '')}</span>
+          <span>${escHtml(r.nom)}</span>
+        </div>`).join('');
+    }
+  } else {
+    // Ancien schéma (compat)
+    document.getElementById('counselor-lecture').textContent = c.conseil_conseiller || '–';
+    const attEl = document.getElementById('counselor-attention');
+    if (attEl && c.points_attention) {
+      attEl.style.display = 'block';
+      attEl.innerHTML = `<div class="attention-box"><div class="attention-label">⚠ Points d'attention</div><p class="attention-text">${escHtml(typeof c.points_attention === 'string' ? c.points_attention : JSON.stringify(c.points_attention))}</p></div>`;
+    }
+    const acEl = document.getElementById('counselor-action');
+    if (acEl) acEl.textContent = '–';
+  }
+}
+
+/* ─── Composants rapport ────────────────────────────────────── */
+const SIGNAL_CLASS = { fort: 'sig-fort', moyen: 'sig-moyen', faible: 'sig-faible' };
+const SIGNAL_LABEL = { fort: 'Signal fort', moyen: 'Signal moyen', faible: 'Signal faible' };
+
+function signalBadge(sig) {
+  if (!sig) return '';
+  return `<span class="niveau-signal ${SIGNAL_CLASS[sig] || 'sig-moyen'}">${SIGNAL_LABEL[sig] || escHtml(sig)}</span>`;
+}
+
+function domaineBlock(dom, facettes) {
+  if (!dom || !dom.principal) return '<div class="hypotheses-note">Domaine non identifié — données insuffisantes.</div>';
+  const p = dom.principal;
+  const preuves = (p.preuves || []).map(pr => `<div class="preuve-item">${escHtml(pr)}</div>`).join('');
+  const secs = (dom.secondaires || []).map(s =>
+    `<span class="domaine-sec-pill">${escHtml(s.nom)} ${signalBadge(s.signal)}</span>`).join('');
+  const facs = (facettes || []).map(f =>
+    `<span class="facette-pill" title="${escHtml(f.preuve || '')}">${escHtml(f.verbe)}</span>`).join('');
+  return `
+    <div class="domaine-card">
+      <div class="domaine-eyebrow">✦ Ton domaine ${signalBadge(p.signal)}</div>
+      <div class="domaine-nom">${escHtml(p.nom)}</div>
+      ${p.phrase_jeune ? `<p class="domaine-phrase">${escHtml(p.phrase_jeune)}</p>` : ''}
+      ${preuves ? `<div class="preuves-list">${preuves}</div>` : ''}
+      ${secs ? `<div class="domaine-secondaires"><span style="font-size:12px;color:rgba(255,255,255,0.45);align-self:center">Aussi détecté :</span>${secs}</div>` : ''}
+      ${facs ? `<div class="facettes-row"><span style="font-size:12px;color:rgba(255,255,255,0.45);align-self:center">Ce que tu aimes y faire :</span>${facs}</div>` : ''}
+    </div>`;
+}
+
+const COLOR_MAP = { green: 'var(--green)', purple: 'var(--purple)', amber: 'var(--amber)', coral: 'var(--coral)' };
+
+function interestTag(i) {
+  const color   = COLOR_MAP[i.couleur] || i.couleur || 'var(--green)';
+  const sizeMap = { lg: '1.05rem', md: '0.9rem', sm: '0.78rem' };
+  const padMap  = { lg: '10px 18px', md: '8px 14px', sm: '6px 11px' };
+  const title   = i.intensite ? `Intensité : ${i.intensite}` : '';
+  const tilde   = i.source === 'inféré' ? '<span style="opacity:.5">~</span>' : '';
+  return `<span class="tag" style="background:${color}18;color:${color};font-size:${sizeMap[i.taille]||'0.9rem'};padding:${padMap[i.taille]||'8px 14px'}" title="${escHtml(title)}">${tilde}${escHtml(i.label)}</span>`;
+}
+
+function hypRow(t) {
+  return `
+    <div class="hyp-row">
+      <div class="hyp-head">
+        <div>
+          ${t.type ? `<div class="hyp-type">${escHtml(t.type)}</div>` : ''}
+          <span class="trait-name">${escHtml(t.nom)}</span>
+        </div>
+        ${signalBadge(t.signal)}
+      </div>
+      ${t.signal_source ? `<span class="signal-badge">📊 ${escHtml(t.signal_source)}</span>` : ''}
+      ${t.question_conversation ? `<div class="question-pill">💬 ${escHtml(t.question_conversation)}</div>` : ''}
+    </div>`;
+}
+
+function jobCard(j) {
+  const tensionClass = { forte: 'tension-forte', correcte: 'tension-correct', faible: 'tension-faible' }[j.tension_marche] || '';
+  const tensionLabel = { forte: '↑ Marché porteur', correcte: '→ Marché stable', faible: '↓ Marché limité' }[j.tension_marche] || '';
+  const voiesHtml = (j.voies_acces || []).map(v => `
+    <div class="voie-item">
+      <div>
+        <div class="voie-name">${escHtml(v.formation)}${v.eligible_cpf ? ' <span class="connu-badge">CPF</span>' : ''}</div>
+        <div class="voie-meta">${[v.duree, v.niveau_requis, v.type].filter(Boolean).map(escHtml).join(' · ')}</div>
+      </div>
+      ${(v.salaire_indicatif || v.salaire_debutant) ? `<div class="voie-salary" title="Fourchette indicative — à vérifier sur MétierScope">💶 ${escHtml(v.salaire_indicatif || v.salaire_debutant)} <span style="opacity:.6;font-weight:400">(indicatif)</span></div>` : ''}
+    </div>`).join('');
+  return `
+    <div class="job-card${j.top ? ' job-top' : ''}">
+      <div class="job-header">
+        <div class="job-emoji">${escHtml(j.emoji || '')}</div>
+        <div class="job-info">
+          <div class="job-name">${escHtml(j.nom)}${j.fenetre ? '<span class="fenetre-badge">✦ Fenêtre</span>' : ''}</div>
+          <div class="job-tags">
+            ${(j.tags || []).map(t => `<span class="job-tag">${escHtml(t)}</span>`).join('')}
+            ${j.connu_du_jeune === false && !j.fenetre ? '<span class="connu-badge">✦ Métier à découvrir</span>' : ''}
+            ${tensionLabel ? `<span class="tension-badge ${tensionClass}">${tensionLabel}</span>` : ''}
+          </div>
+        </div>
+        ${signalBadge(j.signal)}
+      </div>
+      <p class="job-desc">${escHtml(j.description_jeune || '')}</p>
+      ${j.fenetre && j.pourquoi_fenetre ? `<div class="pourquoi-box" style="background:var(--purple-light)"><span class="pourquoi-label">Jamais croisé dans ton feed — pourquoi on te le montre ·</span> ${escHtml(j.pourquoi_fenetre)}</div>` : ''}
+      ${j.pourquoi_toi ? `<div class="pourquoi-box"><span class="pourquoi-label">Pourquoi toi ·</span> ${escHtml(j.pourquoi_toi)}</div>` : ''}
+      ${voiesHtml ? `<div class="voies-list">${voiesHtml}</div>` : ''}
+      ${j.question_conversation ? `<div class="question-pill">💬 ${escHtml(j.question_conversation)}</div>` : ''}
+    </div>`;
+}
+
+/* ─── Export HTML A4 imprimable ─────────────────────────────── */
+function exportHTML() {
+  const d  = state.report;
+  const fd = state.formData;
+  if (!d) return;
+
+  const profilType  = d.profil?.type || d.profil_type || '–';
+  const headline    = d.profil?.headline_rapport || d.profil?.headline_jeune || d.headline || '–';
+  const couleur     = { green: '#1D9E75', purple: '#7F77DD', amber: '#EF9F27', coral: '#D85A30' }[d.profil?.couleur_dominante] || '#1D9E75';
+  const domaine     = d.domaine || null;
+  const facettes    = d.facettes || [];
+  const hyps        = d.hypotheses || d.traits || [];
+  const interets    = d.interets || d.interets_principaux || [];
+  const insightJ    = d.insight && typeof d.insight === 'object' ? d.insight.texte_jeune    : (d.insight || '–');
+  const insightC    = d.insight && typeof d.insight === 'object' ? d.insight.texte_conseiller : null;
+  const insightQ    = d.insight && typeof d.insight === 'object' ? d.insight.question_conversation : null;
+  const cons        = d.conseiller || {};
+  const now         = new Date();
+  const dateStr     = now.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
+  const srcLabel    = state.sourceDonnees === 'instagram+tiktok' ? 'Instagram + TikTok'
+                    : state.sourceDonnees === 'tiktok'            ? 'TikTok'
+                    : state.sourceDonnees === 'instagram'         ? 'Instagram'
+                    : 'Déclaratif uniquement';
+
+  // ── Helpers ──────────────────────────────────────────────────
+  const e = escHtml;
+  const sigColors = { fort: '#1D9E75', moyen: '#EF9F27', faible: '#9B9B96' };
+  const sigLabels = { fort: 'SIGNAL FORT', moyen: 'SIGNAL MOYEN', faible: 'SIGNAL FAIBLE' };
+  const sigChip = s => s ? `<span style="display:inline-block;border:1.5px solid ${sigColors[s]||'#aaa'};color:${sigColors[s]||'#aaa'};border-radius:100px;padding:1px 8px;font-size:9px;font-weight:700;letter-spacing:0.5px;vertical-align:middle">${sigLabels[s]||e(s)}</span>` : '';
+
+  const domaineBloc = () => {
+    if (!domaine?.principal) return '';
+    const p = domaine.principal;
+    const preuves = (p.preuves||[]).map(pr=>`<div style="font-size:11px;color:#555;padding:3px 0">📊 ${e(pr)}</div>`).join('');
+    const secs = (domaine.secondaires||[]).map(s=>`<span style="display:inline-block;background:#f0f0f0;border-radius:100px;padding:3px 10px;font-size:11px;margin:2px">${e(s.nom)} ${sigChip(s.signal)}</span>`).join('');
+    const facs = facettes.map(f=>`<span style="display:inline-block;background:#E1F5EE;color:#085041;border-radius:100px;padding:3px 10px;font-size:11px;margin:2px">${e(f.verbe)}</span>`).join('');
+    return `
+    <div style="background:#1a1a18;color:#fff;border-radius:12px;padding:22px 26px;margin-bottom:20px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${couleur};margin-bottom:8px">Domaine identifié ${sigChip(p.signal)}</div>
+      <div style="font-size:26px;font-style:italic;font-family:Georgia,serif;margin-bottom:8px">${e(p.nom)}</div>
+      ${p.phrase_jeune?`<div style="font-size:12px;color:rgba(255,255,255,0.75);line-height:1.6;margin-bottom:10px">${e(p.phrase_jeune)}</div>`:''}
+      ${p.univers?`<div style="font-size:10px;color:rgba(255,255,255,0.4)">Univers référentiel : ${e(p.univers)}</div>`:''}
+    </div>
+    ${preuves?`<div style="margin-bottom:14px"><strong style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888">Preuves comportementales</strong>${preuves}</div>`:''}
+    ${secs?`<div style="margin-bottom:10px"><strong style="font-size:11px;color:#888">Domaines secondaires :</strong> ${secs}</div>`:''}
+    ${facs?`<div style="margin-bottom:10px"><strong style="font-size:11px;color:#888">Facettes :</strong> ${facs}</div>`:''}`;
+  };
+
+  const hypBloc = t => `<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f0f0f0">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+        <span style="font-size:13px"><strong>${e(t.nom)}</strong></span>
+        ${sigChip(t.signal)}
+      </div>
+      ${t.type?`<div style="font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:#aaa;margin-bottom:2px">${e(t.type)}</div>`:''}
+      ${t.signal_source?`<div style="font-size:10px;color:#888;margin-top:2px">📊 ${e(t.signal_source)}</div>`:''}
+      ${t.question_conversation?`<div style="font-size:11px;color:#7F77DD;margin-top:3px;font-style:italic">💬 ${e(t.question_conversation)}</div>`:''}
+    </div>`;
+
+  const qrUrl = q => `https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(q)}&margin=4`;
+  const onisepUrl = nom => `https://www.onisep.fr/recherche?q=${encodeURIComponent(nom)}`;
+
+  const footer = `<div style="border-top:1px solid #e0e0e0;margin-top:24px;padding-top:10px;display:flex;justify-content:space-between;font-size:10px;color:#bbb">
+    <span>FindYourself — Document confidentiel — Usage conseiller uniquement</span>
+    <span>${e(fd.prenom||'Jeune')} · ${dateStr}</span>
+    <span>clement.gal.pro@gmail.com</span>
+  </div>`;
+
+  // ── Page de garde ─────────────────────────────────────────────
+  const coverPage = `
+  <div style="page-break-after:always;min-height:250mm;display:flex;flex-direction:column;justify-content:space-between;padding:40px 0">
+    <div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#bbb;margin-bottom:32px">FindYourself · Rapport d'orientation</div>
+      <div style="width:60px;height:6px;background:${couleur};border-radius:3px;margin-bottom:28px"></div>
+      <h1 style="font-size:36px;font-weight:800;letter-spacing:-1px;margin-bottom:8px;line-height:1.1">${e(fd.prenom||'Jeune')}</h1>
+      <p style="font-size:16px;color:#666;margin-bottom:6px">${[fd.age&&fd.age+' ans',fd.situation,fd.precision].filter(Boolean).join(' · ')}</p>
+      <div style="margin-top:32px;padding:18px 22px;background:#f7f6f2;border-radius:10px;border-left:4px solid ${couleur}">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#aaa;margin-bottom:6px">Profil</div>
+        <div style="font-size:18px;font-weight:700;color:#1a1a18">${e(profilType)}</div>
+        <div style="font-size:13px;color:#555;margin-top:6px;font-style:italic">${e(headline)}</div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;gap:20px;margin-bottom:24px;flex-wrap:wrap">
+        <div style="font-size:12px;color:#888"><strong style="color:#1a1a18">Source données</strong><br>${e(srcLabel)}</div>
+        <div style="font-size:12px;color:#888"><strong style="color:#1a1a18">Date d'analyse</strong><br>${dateStr}</div>
+        <div style="font-size:12px;color:#888"><strong style="color:#1a1a18">Modèle IA</strong><br>Claude Sonnet</div>
+      </div>
+      <div style="background:#FFF8EC;border:1px solid #EF9F27;border-radius:8px;padding:12px 16px;font-size:11px;color:#7a5000;line-height:1.6">
+        ⚠ <strong>Document confidentiel.</strong> Ce rapport est destiné exclusivement au conseiller d'orientation dans le cadre d'un entretien. Il ne doit pas être transmis au jeune sans accompagnement préalable. Les données comportementales analysées appartiennent au jeune et ne sont conservées par aucun serveur FindYourself.
+      </div>
+    </div>
+  </div>`;
+
+  // ── Page 1 : Scores + Intérêts + Traits ──────────────────────
+  const interetsBlocs = interets.map(i => {
+    const sz = i.taille==='lg'?14:i.taille==='sm'?11:12;
+    const c = {green:'#E1F5EE',purple:'#EEEDFE',amber:'#FAEEDA',coral:'#FAECE7'}[i.couleur]||'#f0f0f0';
+    const tc = {green:'#085041',purple:'#3f3894',amber:'#7a5000',coral:'#7a2810'}[i.couleur]||'#333';
+    return `<span style="display:inline-block;background:${c};color:${tc};border-radius:100px;padding:4px 12px;margin:3px;font-size:${sz}px;font-weight:500">${i.source==='inféré'?'~ ':''}${e(i.label)}</span>`;
+  }).join('');
+
+  const p1 = `
+  <div style="page-break-after:always">
+    <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#bbb;margin-bottom:20px">Domaine & hypothèses</div>
+    ${domaineBloc()}
+    <h2 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#1D9E75;border-bottom:2px solid #1D9E75;padding-bottom:5px;margin:20px 0 12px">Hypothèses de lecture <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#aaa">— à discuter en entretien, pas des verdicts</span></h2>
+    ${hyps.map(hypBloc).join('')||'–'}
+    <h2 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#1D9E75;border-bottom:2px solid #1D9E75;padding-bottom:5px;margin:20px 0 12px">Centres d'intérêt</h2>
+    <div>${interetsBlocs||'–'}</div>
+    <h2 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#1D9E75;border-bottom:2px solid #1D9E75;padding-bottom:5px;margin:20px 0 12px">Insight clé</h2>
+    <div style="background:#f7f6f2;border-left:4px solid #1D9E75;padding:14px 16px;border-radius:0 8px 8px 0;font-style:italic;font-size:13px;line-height:1.6">${e(insightJ)}</div>
+    ${insightQ?`<div style="margin-top:8px;font-size:12px;color:#7F77DD;font-style:italic">💬 ${e(insightQ)}</div>`:''}
+    ${footer}
+  </div>`;
+
+  // ── Page 2 : "À lire avant l'entretien" ──────────────────────
+  const allJobs = d.pistes || d.metiers || [];
+  const q3 = [
+    ...(d.conseiller?.questions_a_poser||[]).slice(0,3),
+    ...allJobs.flatMap(j=>j.question_conversation?[j.question_conversation]:[]).slice(0,2),
+    insightQ,
+  ].filter(Boolean).slice(0,5);
+
+  const p2 = `
+  <div style="page-break-after:always">
+    <div style="background:#1a1a18;color:white;border-radius:12px;padding:24px 28px;margin-bottom:24px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:10px">À lire avant l'entretien</div>
+      <div style="font-size:15px;font-weight:600;line-height:1.55;margin-bottom:18px">${e(insightC || (cons.lecture_globale?.slice(0,200)||'–'))}</div>
+      ${cons.conseil_actionnable?`<div style="background:${couleur};color:#fff;border-radius:8px;padding:12px 16px;font-size:13px;font-weight:500">⚡ ${e(cons.conseil_actionnable)}</div>`:''}
+    </div>
+    ${cons.angles_morts?`
+    <div style="background:#EEEDFE;border-left:4px solid #7F77DD;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:16px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7F77DD;margin-bottom:5px">🔭 Angles morts du feed</div>
+      <p style="font-size:12px;color:#444;line-height:1.6">${e(cons.angles_morts)}</p>
+    </div>`:''}
+    ${(cons.inferences_risquees||[]).length>0?`
+    <div style="background:#FFF8EC;border-left:4px solid #EF9F27;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:16px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#C77F1B;margin-bottom:5px">⚖️ Inférences à prendre avec prudence</div>
+      ${(cons.inferences_risquees||[]).map(i=>`<p style="font-size:12px;color:#444;line-height:1.6;margin-bottom:4px">• ${e(i)}</p>`).join('')}
+    </div>`:''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div>
+        <h2 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#1D9E75;border-bottom:2px solid #1D9E75;padding-bottom:5px;margin-bottom:12px">Questions à poser</h2>
+        ${q3.map(q=>`<div style="display:flex;gap:8px;margin-bottom:10px;font-size:12px;line-height:1.5"><span style="color:#1D9E75;font-weight:700;flex-shrink:0">→</span><span>${e(q)}</span></div>`).join('')||'–'}
+      </div>
+      <div>
+        ${(cons.points_attention||[]).length>0?`
+          <h2 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#EF9F27;border-bottom:2px solid #EF9F27;padding-bottom:5px;margin-bottom:12px">Points d'attention</h2>
+          ${(cons.points_attention||[]).map(p=>`<div style="background:#FFF8EC;border-left:3px solid #EF9F27;padding:8px 10px;border-radius:0 6px 6px 0;margin-bottom:8px;font-size:12px"><strong>${e(p.type?.toUpperCase()||'ATTENTION')}</strong><br>${e(p.signal||'')}${p.action_recommandee?`<br><em>→ ${e(p.action_recommandee)}</em>`:''}</div>`).join('')}
+        `:''}
+        ${(cons.a_ne_pas_faire||[]).length>0?`
+          <h2 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#D85A30;border-bottom:2px solid #D85A30;padding-bottom:5px;margin:14px 0 10px">À éviter</h2>
+          ${(cons.a_ne_pas_faire||[]).map(a=>`<div style="font-size:12px;color:#555;padding:5px 0;border-bottom:1px solid #f0f0f0">✗ ${e(a)}</div>`).join('')}
+        `:''}
+      </div>
+    </div>
+    ${footer}
+  </div>`;
+
+  // ── Page 3 : Portes d'entrée avec QR codes ───────────────────
+  const jobs = allJobs;
+  const topJ = jobs.find(j=>j.top);
+  const ordJ = topJ ? [topJ, ...jobs.filter(j=>!j.top)] : jobs;
+
+  const metiersBlocs = ordJ.map(j => {
+    const tensColor = {forte:'#1D9E75',correcte:'#EF9F27',faible:'#D85A30'}[j.tension_marche]||'#aaa';
+    const tensLabel = {forte:'↑ Marché porteur',correcte:'→ Marché stable',faible:'↓ Marché limité'}[j.tension_marche]||'';
+    const voies = (j.voies_acces||[]).map(v=>`
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f5f5f5;font-size:11px">
+        <div><strong>${e(v.formation)}</strong>${v.eligible_cpf?' <span style="background:#E1F5EE;color:#085041;border-radius:4px;padding:0 5px;font-size:9px;font-weight:700">CPF</span>':''} · ${e(v.duree||'')} · ${e(v.niveau_requis||'')} · ${e(v.type||'')}</div>
+        ${(v.salaire_indicatif||v.salaire_debutant)?`<div style="color:#1D9E75;font-weight:600;white-space:nowrap;margin-left:8px">${e(v.salaire_indicatif||v.salaire_debutant)} <span style="color:#aaa;font-weight:400">(indicatif)</span></div>`:''}
+      </div>`).join('');
+    return `
+    <div style="border:1px solid ${j.top?'#1D9E75':'#e8e8e8'};border-radius:10px;padding:16px;margin-bottom:16px${j.top?';border-width:2px':''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+            <span style="font-size:22px">${j.emoji||''}</span>
+            <div>
+              <strong style="font-size:14px">${e(j.nom)}</strong>
+              ${j.fenetre?`<span style="background:#7F77DD;color:#fff;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:6px">✦ FENÊTRE</span>`:''}
+              ${j.connu_du_jeune===false&&!j.fenetre?`<span style="background:#EF9F27;color:#fff;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:6px">À DÉCOUVRIR</span>`:''}
+              ${tensLabel?`<span style="font-size:10px;color:${tensColor};font-weight:600;margin-left:6px">${tensLabel}</span>`:''}
+            </div>
+          </div>
+          <p style="font-size:12px;color:#555;line-height:1.5;margin-bottom:8px">${e(j.description_jeune||'')}</p>
+          ${j.fenetre&&j.pourquoi_fenetre?`<div style="background:#EEEDFE;padding:8px 10px;border-radius:6px;font-size:11px;color:#3f3894;font-style:italic;margin-bottom:8px"><strong>Hors feed — pourquoi cette piste :</strong> ${e(j.pourquoi_fenetre)}</div>`:''}
+          ${j.pourquoi_toi?`<div style="background:#f7f6f2;padding:8px 10px;border-radius:6px;font-size:11px;color:#444;font-style:italic;margin-bottom:8px"><strong>Pourquoi toi :</strong> ${e(j.pourquoi_toi)}</div>`:''}
+          ${voies?`<div style="margin-top:6px">${voies}</div>`:''}
+          ${j.question_conversation?`<div style="margin-top:8px;font-size:11px;color:#7F77DD;font-style:italic">💬 ${e(j.question_conversation)}</div>`:''}
+        </div>
+        <div style="text-align:center;flex-shrink:0">
+          ${sigChip(j.signal)}
+          <img src="${qrUrl(onisepUrl(j.nom))}" width="70" height="70" style="display:block;margin:6px 0" alt="ONISEP QR">
+          <div style="font-size:9px;color:#bbb">ONISEP</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const p3 = `
+  <div style="page-break-after:always">
+    <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#bbb;margin-bottom:16px">Portes d'entrée — pistes à explorer, pas des verdicts</div>
+    ${metiersBlocs}
+    ${footer}
+  </div>`;
+
+  // ── Page 4 : Environnements + Lecture conseiller ──────────────
+  const envsB = (d.environnements||[]).map(e2=>`
+    <div style="display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #f5f5f5">
+      <span style="font-size:20px;flex-shrink:0">${e2.emoji||''}</span>
+      <div>
+        <strong style="font-size:13px">${e(e2.titre)}</strong>
+        <div style="font-size:12px;color:#666">${e(e2.sous)}</div>
+        ${e2.signal_source?`<div style="font-size:10px;color:#aaa">📊 ${e(e2.signal_source)}</div>`:''}
+      </div>
+    </div>`).join('');
+
+  const ressB = (cons.ressources_suggerer||[]).map(r=>`
+    <div style="display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:12px">
+      <span style="background:#E1F5EE;color:#085041;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:600;flex-shrink:0">${e(r.type||'')}</span>
+      <span>${e(r.nom)}</span>
+      ${r.url_type?`<img src="${qrUrl('https://'+r.url_type)}" width="36" height="36" alt="" style="margin-left:auto;flex-shrink:0">`:''}
+    </div>`).join('');
+
+  const p4 = `
+  <div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px">
+      <div>
+        <h2 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#1D9E75;border-bottom:2px solid #1D9E75;padding-bottom:5px;margin-bottom:12px">Environnements de travail</h2>
+        ${envsB||'–'}
+      </div>
+      <div>
+        <h2 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#1D9E75;border-bottom:2px solid #1D9E75;padding-bottom:5px;margin-bottom:12px">Lecture globale</h2>
+        <p style="font-size:12px;color:#444;line-height:1.6">${e(cons.lecture_globale||cons.conseil_conseiller||'–')}</p>
+      </div>
+    </div>
+    ${ressB?`
+    <h2 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#1D9E75;border-bottom:2px solid #1D9E75;padding-bottom:5px;margin:20px 0 10px">Ressources à partager</h2>
+    ${ressB}`:''}
+    ${footer}
+  </div>`;
+
+  // ── Assemblage final ──────────────────────────────────────────
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Rapport FindYourself — ${e(fd.prenom||'Jeune')} — ${dateStr}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a18;background:#fff;line-height:1.4}
+    @page{size:A4 portrait;margin:18mm 20mm}
+    @media print{.no-print{display:none!important}body{font-size:12px}}
+    .wrap{max-width:740px;margin:0 auto;padding:28px 0}
+    .btn-print{background:#1D9E75;color:#fff;border:none;padding:10px 22px;border-radius:8px;cursor:pointer;font-size:14px;margin-bottom:28px;font-family:inherit}
+    .btn-print:hover{background:#085041}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <button class="btn-print no-print" onclick="window.print()">🖨️ Imprimer / Enregistrer en PDF</button>
+  ${coverPage}
+  ${p1}
+  ${p2}
+  ${p3}
+  ${p4}
+</div>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `findyourself_${(fd.prenom||'rapport').toLowerCase().replace(/\s+/g,'-')}_${now.toISOString().slice(0,10)}.html`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 6000);
+}
+
+  </script>
+</body>
+</html>

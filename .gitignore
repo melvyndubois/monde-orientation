@@ -1,0 +1,17 @@
+# Secrets — ne JAMAIS committer
+.env
+**/.env
+*.key
+
+# Dépendances
+node_modules/
+
+# Netlify
+.netlify/
+
+# OS / éditeur
+.DS_Store
+Thumbs.db
+
+# Outils locaux
+.claude/
