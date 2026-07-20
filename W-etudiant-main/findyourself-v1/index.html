@@ -1852,7 +1852,7 @@ async function processPlatformFile(file, platform) {
       }
       const sig = result.signaux || extraireSignaux(result.json, result.source);
       if (result.source === 'declaratif_seul' || !hasSig(sig)) {
-        toast('Aucune donnée reconnue dans ce fichier.', 'error'); return;
+        toast(messageZipEchec(result.diag), 'error'); return;
       }
       signaux = sig; source = result.source;
     } else {
@@ -2464,6 +2464,10 @@ async function findJsonInZip(zip) {
 
   const fileMap = {};
   const allJsonFiles = zip.file(/\.json$/i);
+  // Diagnostic : combien de fichiers de chaque type dans le zip ?
+  const allFiles  = zip.file(/.*/).filter(f => !f.dir);
+  const htmlCount = allFiles.filter(f => /\.html?$/i.test(f.name)).length;
+  const diag = { total: allFiles.length, jsonCount: allJsonFiles.length, htmlCount };
   for (const f of allJsonFiles) {
     const pl = f.name.toLowerCase();
     if (pl.includes('/media/') || pl.includes('/files/')) continue;
@@ -2503,7 +2507,19 @@ async function findJsonInZip(zip) {
     if (hasSig(sig)) return { json: bruteForce, source: 'instagram', signaux: sig };
   }
 
-  return { json: {}, source: 'declaratif_seul' };
+  return { json: {}, source: 'declaratif_seul', diag };
+}
+
+// Construit un message d'erreur explicite pour un zip non reconnu
+function messageZipEchec(diag) {
+  if (!diag) return 'Aucune donnée reconnue dans ce fichier.';
+  if (diag.htmlCount > 0 && diag.jsonCount === 0) {
+    return `Ton export est au format HTML (${diag.htmlCount} fichiers .html), or l'app ne lit que le JSON. Redemande ton export en cochant le format JSON.`;
+  }
+  if (diag.jsonCount > 0) {
+    return `${diag.jsonCount} fichiers JSON trouvés, mais aucune donnée d'activité reconnue (comptes suivis, recherches, likes). Vérifie d'avoir coché ces catégories à l'export.`;
+  }
+  return `Aucun fichier JSON dans ce zip (${diag.total} fichiers). Vérifie que l'export est bien au format JSON.`;
 }
 
 // Extraction best-effort depuis un ZIP Instagram au format inconnu
