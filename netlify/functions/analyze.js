@@ -45,10 +45,12 @@ exports.handler = async (event) => {
   if (!API_KEY) return resp(500, { error: 'Configuration serveur incomplète (clé API manquante).' });
 
   // Code d'accès conseiller (si configuré)
-  if (ACCESS_CODE) {
-    const provided = event.headers['x-access-code'] || event.headers['X-Access-Code'] || '';
-    if (provided !== ACCESS_CODE) {
-      return resp(401, { error: "Code d'accès requis ou invalide. Demande-le à ton administrateur." });
+  if (ACCESS_CODE.trim()) {
+    const rawHeader = event.headers['x-access-code'] || event.headers['X-Access-Code'] || '';
+    let provided = rawHeader;
+    try { provided = decodeURIComponent(rawHeader); } catch { /* en-tête non encodé */ }
+    if (provided.trim() !== ACCESS_CODE.trim()) {
+      return resp(401, { error: "Code d'accès requis ou invalide. Vérifie le champ « Code d'accès »." });
     }
   }
 

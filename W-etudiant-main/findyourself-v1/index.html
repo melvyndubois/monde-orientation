@@ -1708,6 +1708,9 @@ function restoreFormData() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+  // Mémorise le contenu original de l'écran d'analyse (showError le remplace)
+  const analysisEl = document.getElementById('screen-analysis');
+  if (analysisEl) _analysisScreenHTML = analysisEl.innerHTML;
   restoreFormData();
   if (PREFILLED_KEY) document.getElementById('api-key').value = PREFILLED_KEY;
   // Mode production : masquer la saisie de clé (la clé vit côté proxy),
@@ -2763,6 +2766,8 @@ async function runAnalysis() {
     competences: document.getElementById('f-competences').value.trim(),
   };
 
+  // Restaure l'écran d'analyse s'il a été remplacé par un écran d'erreur précédent
+  restoreAnalysisScreen();
   showScreen('analysis');
   resetSteps();
 
@@ -2799,11 +2804,20 @@ function setProgress(pct) {
   document.getElementById('pbar').style.width = pct + '%';
 }
 
+/* Sauvegarde/restaure l'écran d'analyse (showError remplace son innerHTML) */
+let _analysisScreenHTML = null;
+function restoreAnalysisScreen() {
+  const el = document.getElementById('screen-analysis');
+  if (el && _analysisScreenHTML !== null) el.innerHTML = _analysisScreenHTML;
+}
+
 function resetSteps() {
   for (let i = 1; i <= 5; i++) {
     const el = document.getElementById('step-' + i);
+    if (!el) continue;                       // garde-fou : écran restauré ?
     el.className = 'step-row pending';
-    el.querySelector('.step-icon').textContent = i;
+    const ico = el.querySelector('.step-icon');
+    if (ico) ico.textContent = i;
   }
   setProgress(0);
   startPhraseRoll();
@@ -2856,13 +2870,16 @@ function stopPhraseRoll() {
 async function activateStep(n, pct, text) {
   for (let i = 1; i < n; i++) {
     const el = document.getElementById('step-' + i);
+    if (!el) continue;
     el.className = 'step-row done';
-    el.querySelector('.step-icon').textContent = '✓';
+    const ico = el.querySelector('.step-icon');
+    if (ico) ico.textContent = '✓';
   }
   const cur = document.getElementById('step-' + n);
-  cur.className = 'step-row active';
+  if (cur) cur.className = 'step-row active';
   setProgress(pct);
-  document.getElementById('step-text').textContent = text;
+  const st = document.getElementById('step-text');
+  if (st) st.textContent = text;
 }
 
 /* ─── Appel IA : via proxy backend (production) ou direct (pilote) ─ */
@@ -2877,11 +2894,12 @@ async function callClaude(apiKey, userPrompt, isAdulte) {
     if (USE_BACKEND()) {
       // Mode production : le proxy détient la clé, aucune clé côté client.
       const accessCode = (document.getElementById('access-code')?.value || '').trim();
+      // Encodage : un en-tête HTTP ne transporte pas les accents de façon fiable.
       res = await fetch(PROXY_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(accessCode ? { 'x-access-code': accessCode } : {}),
+          ...(accessCode ? { 'x-access-code': encodeURIComponent(accessCode) } : {}),
         },
         body: JSON.stringify({ model: CLAUDE_MODEL, max_tokens: 8000, system, messages }),
         signal: ctrl.signal,
@@ -2905,9 +2923,19 @@ async function callClaude(apiKey, userPrompt, isAdulte) {
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      if (res.status === 401) throw new Error('Clé API invalide. Vérifie ta clé Anthropic sur console.anthropic.com.');
+      // Le proxy renvoie { error: "…" } (chaîne) ; l'API directe { error: { message } }
+      const serverMsg = typeof body?.error === 'string' ? body.error : body?.error?.message;
+      if (res.status === 401) {
+        throw new Error(serverMsg || (USE_BACKEND()
+          ? 'Code d\'accès conseiller requis ou incorrect. Vérifie le champ « Code d\'accès ».'
+          : 'Clé API invalide. Vérifie ta clé Anthropic sur console.anthropic.com.'));
+      }
+      if (res.status === 404 && USE_BACKEND()) {
+        throw new Error('Le serveur d\'analyse (/api/analyze) est introuvable. En local, l\'analyse réelle ne marche pas — utilise « Voir un rapport de démo », ou teste sur l\'URL Netlify.');
+      }
       if (res.status === 429) throw new Error('Limite de requêtes atteinte. Attends quelques secondes et réessaie.');
-      throw new Error(body?.error?.message || `Erreur API (${res.status})`);
+      if (res.status === 500 && USE_BACKEND()) throw new Error(serverMsg || 'Configuration serveur incomplète (clé API manquante côté Netlify ?).');
+      throw new Error(serverMsg || `Erreur API (${res.status})`);
     }
 
     const data = await res.json();
