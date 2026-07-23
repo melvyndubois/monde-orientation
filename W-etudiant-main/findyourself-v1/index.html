@@ -1398,10 +1398,10 @@
 <script>
 /* ─── Configuration ─────────────────────────────────────────── */
 
-/* Modèle IA. Haiku 4.5 = rapide (tient dans les 60 s des hébergeurs gratuits).
-   Pour une qualité maximale, repasse à 'claude-sonnet-5' MAIS il faut alors un
-   hébergeur sans limite de 60 s (Vercel Pro, ou un serveur dédié type Render). */
-const CLAUDE_MODEL   = 'claude-haiku-4-5';
+/* Modèle IA. Sonnet 5 = qualité maximale (nécessite Vercel Pro / 300 s, ce qui
+   est le cas ici). Pour revenir à un hébergeur gratuit (60 s), repasse à
+   'claude-haiku-4-5' (plus rapide, un peu moins fin). */
+const CLAUDE_MODEL   = 'claude-sonnet-5';
 const API_ENDPOINT   = 'https://api.anthropic.com/v1/messages';
 const API_TIMEOUT_MS = 120000;
 const PREFILLED_KEY  = ''; // pré-remplir pour usage pilote interne
