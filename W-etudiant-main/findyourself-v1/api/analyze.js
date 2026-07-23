@@ -61,7 +61,9 @@ module.exports = async (req, res) => {
         'x-api-key': API_KEY,
         'anthropic-version': ANTHROPIC_VER,
       },
-      body: JSON.stringify({ model, max_tokens, system, messages }),
+      // thinking désactivé : la tâche est une extraction JSON structurée,
+      // la réflexion interne (adaptive) ne fait que ralentir → timeouts.
+      body: JSON.stringify({ model, max_tokens, system, messages, thinking: { type: 'disabled' } }),
     });
     const data = await upstream.json().catch(() => ({}));
     if (!upstream.ok) {

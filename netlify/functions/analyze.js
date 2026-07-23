@@ -81,7 +81,7 @@ exports.handler = async (event) => {
         'x-api-key': API_KEY,
         'anthropic-version': ANTHROPIC_VER,
       },
-      body: JSON.stringify({ model, max_tokens, system, messages }),
+      body: JSON.stringify({ model, max_tokens, system, messages, thinking: { type: 'disabled' } }),
     });
     const data = await upstream.json().catch(() => ({}));
     if (!upstream.ok) {
