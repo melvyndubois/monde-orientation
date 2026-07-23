@@ -23,7 +23,7 @@ const ANTHROPIC_VER   = '2023-06-01';
 const MAX_BODY        = 256 * 1024;      // 256 Ko : les signaux sont petits
 const MAX_TOKENS      = 8000;
 const ALLOWED_MODELS  = new Set([
-  'claude-sonnet-5', 'claude-opus-4-8', 'claude-sonnet-4-6', 'claude-haiku-4-5-20251001',
+  'claude-sonnet-5', 'claude-opus-4-8', 'claude-sonnet-4-6', 'claude-haiku-4-5', 'claude-haiku-4-5-20251001',
 ]);
 
 function resp(statusCode, obj, extraHeaders = {}) {
