@@ -1,5 +1,5 @@
 /**
- * FindYourself — Phrases d'attente pendant l'analyse
+ * Motif — Phrases d'attente pendant l'analyse
  * Modifier ce fichier librement : ajouter, supprimer, reformuler.
  * Ordre aléatoire à l'affichage, donc pas besoin de les classer.
  */
@@ -18,7 +18,6 @@ const LOADING_PHRASES = [
   "L'orientation par les données, c'est l'orientation par ce que tu fais — pas par ce qu'on attend de toi.",
 
   // Mi-sérieuses
-  "L'IA analyse tes signaux. Elle est meilleure que ton prof principal pour ça.",
   "Ce rapport ne remplace pas l'entretien avec ton conseiller. Il le prépare.",
   "Tes données Instagram ne mentent pas. Ton CV, parfois.",
   "La carrière idéale : quelque chose que tu ferais quand même si tu n'étais pas payé·e. Pas complètement, mais un peu.",
@@ -29,10 +28,8 @@ const LOADING_PHRASES = [
   // Légères / décalées
   "En train de transformer 8000 likes en conseils de carrière. C'est de la magie, ou presque.",
   "L'algorithme réfléchit. Toi aussi, d'ailleurs, c'est le moment.",
-  "Pendant ce temps, quelque part dans un datacenter, des serveurs chauffent pour toi.",
   "Analyse en cours… (pas de panique, c'est normal que ça prenne du temps)",
   "Fun fact : le terme 'orientation professionnelle' date de 1908. L'IA, c'est plus récent.",
-  "T'inquiète pas si ca prend du temps, il reste 6/7 secondes avant que ca arrive...",
 ];
 
 // Ne pas modifier cette ligne — elle rend les phrases accessibles à l'app
