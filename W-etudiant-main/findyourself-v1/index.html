@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Motif — Trouve ton domaine</title>
+  <link rel="icon" type="image/png" href="motif-logo.png">
+  <link rel="apple-touch-icon" href="motif-logo.png">
 
   <!-- Typographies -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -135,13 +137,14 @@
        ÉCRAN 1 — ACCUEIL
     ═══════════════════════════════════════════════ */
     #screen-home {
-      background: var(--text);
-      color: white;
+      background: #000;
+      color: var(--paper);
       position: relative;
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
+    .hero-logo { display: block; width: clamp(150px, 26vw, 230px); margin: 0 auto 28px; }
 
     .hero-g1 {
       position: absolute; pointer-events: none;
@@ -692,6 +695,11 @@
       line-height: 1.1; margin-bottom: 8px;
     }
     .job-desc { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 14px; }
+    .job-salaire {
+      font-size: 14px; color: var(--ink); margin-bottom: 10px;
+    }
+    .job-salaire strong { font-weight: 600; }
+    .job-salaire-note { color: var(--text-light); font-size: 12px; }
     .job-voie {
       font-size: 12.5px; color: var(--sun-dark); font-weight: 400;
       padding: 8px 12px; background: rgba(232,163,61,0.12);
@@ -964,12 +972,13 @@
 
   <nav class="hero-nav">
     <div class="logo-mark">Motif<span class="dot">.</span></div>
-    <button class="btn btn-ghost" onclick="showScreen('form')" style="padding:10px 22px;font-size:14px;">
+    <button class="btn btn-ghost" onclick="goToForm()" style="padding:10px 22px;font-size:14px;">
       Commencer →
     </button>
   </nav>
 
   <div class="hero-content">
+    <img src="motif-logo.png" alt="Motif." class="hero-logo">
     <p class="hero-badge">Orientation par les données</p>
     <h1 class="hero-title">
       D'abord ton <em>domaine.</em><br>
@@ -981,7 +990,7 @@
       basées sur ce que tu fais, pas sur ce qu'on te demande de faire.
     </p>
     <div class="hero-ctas">
-      <button class="btn btn-primary" onclick="showScreen('form')">Commencer l'analyse</button>
+      <button class="btn btn-primary" onclick="goToForm()">Commencer l'analyse</button>
       <button class="btn btn-ghost" onclick="launchDemo()">Voir la démo</button>
     </div>
   </div>
@@ -1601,7 +1610,7 @@ STRUCTURE JSON ATTENDUE :
       "description_jeune": "description du métier en langage direct, 2 phrases max",
       "pourquoi_toi": "lien entre SES signaux et CE métier, 1-2 phrases spécifiques avec preuves",
       "voies_acces": [
-        { "formation": "BTS Design Graphique", "duree": "2 ans", "niveau_requis": "Bac", "type": "classique | alternance | apprentissage | formation continue", "eligible_cpf": false, "salaire_indicatif": "fourchette indicative à vérifier sur MétierScope, ou null si incertain" }
+        { "formation": "BTS Design Graphique", "duree": "2 ans", "niveau_requis": "Bac", "type": "classique | alternance | apprentissage | formation continue", "eligible_cpf": false, "salaire_indicatif": "fourchette de salaire réaliste indicative pour ce métier en France, ex : '1 800 – 2 400 €/mois'" }
       ],
       "tension_marche": "forte | correcte | faible",
       "tags": ["Créatif", "Numérique", "Autonome"],
@@ -1631,7 +1640,8 @@ STRUCTURE JSON ATTENDUE :
 CONTRAINTES FINALES :
 - Exactement 4 pistes : au moins 1 accessible immédiatement depuis la situation déclarée, au moins 1 "fenetre": true (hors feed), au moins 1 métier de niche ou porte farfelue du référentiel si elle croise les facettes détectées, au moins 1 à dimension entrepreneuriale si la facette Entreprendre est détectée.
 - 1 domaine principal + 1-2 secondaires maximum.
-- Chaque niveau "fort/moyen/faible" est justifié par une preuve. Jamais de niveau sans preuve.${isAdulte ? condenserCPF() : ''}`;
+- Chaque niveau "fort/moyen/faible" est justifié par une preuve. Jamais de niveau sans preuve.
+- Pour CHAQUE piste, renseigne "salaire_indicatif" avec une fourchette de salaire réaliste en France (ex : "1 700 – 2 300 €/mois") — ne le laisse pas vide.${isAdulte ? condenserCPF() : ''}`;
 }
 
 /* ─── État global ───────────────────────────────────────────── */
@@ -1759,6 +1769,17 @@ function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const el = document.getElementById('screen-' + name);
   if (el) { el.classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+}
+
+/* Aller au formulaire et amener automatiquement au champ « Code d'accès »
+   (en mode proxy) — appelé par les CTA « Commencer l'analyse ». */
+function goToForm() {
+  showScreen('form');
+  setTimeout(() => {
+    const access = document.getElementById('access-card');
+    const target = (access && access.style.display !== 'none') ? access : null;
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 550);
 }
 
 /* ─── Toast ─────────────────────────────────────────────────── */
@@ -2245,6 +2266,90 @@ function extraireSignauxInstagramV2(fileMap) {
   return s;
 }
 
+/* ─── Instagram export HTML (format alternatif au JSON) ─────────
+   Beaucoup d'exports sont téléchargés en HTML : structure Meta stable
+   (blocs, liens /_u/pseudo, <time datetime>, classes _a6-p). On l'exploite
+   avec DOMParser (navigateur). following.html = mine d'or de comptes suivis. */
+function extraireSignauxInstagramHTML(htmlMap) {
+  const s = { comptes_suivis: [], themes_videos: [], recherches: [], favoris: [], patterns_horaires: null, frequence: null };
+  if (typeof DOMParser === 'undefined') return s;
+  const parser    = new DOMParser();
+  const followSet = new Set();
+  const likeFreq  = {};
+  const topics    = [];
+  const searches  = [];
+  const timestamps = [];
+  const LABELS = new Set(['propriétaire','proprietaire','owner','auteur','author','nom','name','date','heure','time','url','lien','link','sujet','topic','pseudo']);
+  const clean = v => (v || '').replace(/\s+/g, ' ').trim();
+
+  for (const [path, htmlStr] of Object.entries(htmlMap)) {
+    const p = path.toLowerCase();
+    const fname = p.split('/').pop();
+    if (p.includes('/messages/') || fname.includes('message')) continue; // privé → ignoré
+    let doc;
+    try { doc = parser.parseFromString(htmlStr, 'text/html'); } catch { continue; }
+
+    // Pseudos depuis les liens /_u/pseudo (following, likes, saved…)
+    doc.querySelectorAll('a[href*="/_u/"]').forEach(a => {
+      const m = (a.getAttribute('href') || '').match(/\/_u\/([^/?&#]+)/);
+      if (!m) return;
+      const u = clean(decodeURIComponent(m[1]));
+      if (!u || u.length > 40 || u.includes(' ')) return;
+      if (/following/.test(fname)) followSet.add(u);
+      else likeFreq[u] = (likeFreq[u] || 0) + 1;
+    });
+
+    // following.html : le pseudo est aussi dans le <h2>
+    if (/following/.test(fname)) {
+      doc.querySelectorAll('h2').forEach(h => {
+        const u = clean(h.textContent);
+        if (u && u.length > 1 && u.length < 40 && !u.includes(' ') && !LABELS.has(u.toLowerCase())) followSet.add(u);
+      });
+    }
+
+    // Sujets / centres d'intérêt
+    if (/topic|interest|inter[eê]t/.test(fname)) {
+      doc.querySelectorAll('td, div._a6-p').forEach(el => {
+        if (el.children.length) return; // feuilles seulement
+        const v = clean(el.textContent);
+        if (v && v.length > 1 && v.length < 60 && !/^https?:/.test(v) && !LABELS.has(v.toLowerCase())) topics.push(v);
+      });
+    }
+
+    // Recherches
+    if (/search|recherch/.test(fname)) {
+      doc.querySelectorAll('td, h2, div._a6-p').forEach(el => {
+        if (el.children.length) return;
+        const v = clean(el.textContent);
+        if (v && v.length > 1 && v.length < 80 && !/^https?:/.test(v) && !LABELS.has(v.toLowerCase())) searches.push(v);
+      });
+    }
+
+    // Horaires : timestamps des lignes de données (on retire les ~3 de l'en-tête)
+    const times = [...doc.querySelectorAll('time[datetime]')]
+      .map(t => Date.parse(t.getAttribute('datetime'))).filter(n => !isNaN(n));
+    if (times.length > 6) times.slice(3).forEach(ms => timestamps.push(Math.floor(ms / 1000)));
+  }
+
+  s.comptes_suivis = [...followSet].slice(0, 60);
+  s.favoris = Object.entries(likeFreq).sort((a, b) => b[1] - a[1]).slice(0, 25).map(([u]) => u);
+  s.themes_videos = [...new Set(topics.map(clean))].filter(Boolean).slice(0, 40);
+  s.recherches = [...new Set(searches.map(clean))].filter(Boolean).slice(0, 30);
+
+  if (timestamps.length > 0) {
+    const hCount = Array(24).fill(0);
+    timestamps.forEach(ts => hCount[new Date(ts * 1000).getHours()]++);
+    const max = Math.max(...hCount);
+    const peaks = hCount.map((c, h) => ({ h, c })).filter(x => x.c >= max * 0.55).map(x => `${x.h}h–${x.h + 1}h`);
+    const noctCount = hCount.slice(22).concat(hCount.slice(0, 5)).reduce((a, b) => a + b, 0);
+    const noctPct   = Math.round(noctCount / timestamps.length * 100);
+    const noctNote  = noctPct >= 10 ? ` — dont ${noctPct}% d'activité nocturne (22h–5h)` : '';
+    if (peaks.length) s.patterns_horaires = `Pics d'activité : ${peaks.slice(0, 5).join(', ')}${noctNote} — ${timestamps.length} interactions`;
+    s.frequence = `${timestamps.length} interactions analysées (likes, vues, sauvegardes)`;
+  }
+  return s;
+}
+
 function extraireSignaux(json, source) {
   const s = { comptes_suivis: [], themes_videos: [], recherches: [], favoris: [], patterns_horaires: null, frequence: null };
 
@@ -2545,6 +2650,23 @@ async function findJsonInZip(zip) {
     if (hasSig(sig)) return { json: bruteForce, source: 'instagram', signaux: sig };
   }
 
+  // ── Export Instagram au format HTML (pas de JSON) ──────────────
+  if (diag.htmlCount > 0) {
+    const htmlFiles = zip.file(/\.html?$/i).filter(f => {
+      const pl = f.name.toLowerCase();
+      if (pl.includes('/messages/') || pl.includes('/media/') || pl.includes('/files/')) return false;
+      return /following|follower|liked|saved|viewed|watched|topic|interest|search|recherch|comment|reels/.test(pl);
+    });
+    const htmlMap = {};
+    for (const f of htmlFiles.slice(0, 60)) {
+      try { htmlMap[f.name] = await f.async('text'); } catch {}
+    }
+    if (Object.keys(htmlMap).length) {
+      const sig = extraireSignauxInstagramHTML(htmlMap);
+      if (hasSig(sig)) return { json: {}, source: 'instagram', signaux: sig };
+    }
+  }
+
   return { json: {}, source: 'declaratif_seul', diag };
 }
 
@@ -2552,7 +2674,7 @@ async function findJsonInZip(zip) {
 function messageZipEchec(diag) {
   if (!diag) return 'Aucune donnée reconnue dans ce fichier.';
   if (diag.htmlCount > 0 && diag.jsonCount === 0) {
-    return `Ton export est au format HTML (${diag.htmlCount} fichiers .html), or l'app ne lit que le JSON. Redemande ton export en cochant le format JSON.`;
+    return `Export HTML détecté mais aucune donnée exploitable extraite. Si possible, redemande ton export Instagram en cochant le format JSON (plus complet).`;
   }
   if (diag.jsonCount > 0) {
     return `${diag.jsonCount} fichiers JSON trouvés, mais aucune donnée d'activité reconnue (comptes suivis, recherches, likes). Vérifie d'avoir coché ces catégories à l'export.`;
@@ -3071,10 +3193,10 @@ const FALLBACK_REPORT = {
     question_conversation: 'Si tu pouvais apprendre n\'importe quoi demain sans que personne le sache, tu apprendrais quoi ?',
   },
   pistes: [
-    { emoji: '🔧', nom: 'Carrossier-peintre / customisateur', signal: 'fort', connu_du_jeune: true, fenetre: false, pourquoi_fenetre: null, description_jeune: 'Tu répares et transformes des véhicules — jusqu\'à la customisation complète. Chaque résultat est visible : tu vois ce que tu as fait.', pourquoi_toi: 'Recherche "CAP carrosserie salaire" + @carrosserie_pro : tu y penses déjà. Et ta facette "personnaliser" en fait plus qu\'un métier de réparation.', voies_acces: [{ formation: 'CAP Carrosserie (puis Bac Pro RC)', duree: '2 ans', niveau_requis: '3ème', type: 'apprentissage', eligible_cpf: false, salaire_indicatif: null }], tension_marche: 'forte', tags: ['Manuel', 'Créatif', 'Concret'], top: true, question_conversation: 'Si on te confiait une voiture à transformer librement, tu en ferais quoi ?' },
-    { emoji: '🎨', nom: 'Peintre customisateur moto / auto', signal: 'moyen', connu_du_jeune: false, fenetre: false, pourquoi_fenetre: null, description_jeune: 'Le croisement exact de tes deux domaines : la mécanique ET le graphisme. Tu peins des réservoirs, des carrosseries, des casques — des pièces uniques.', pourquoi_toi: 'Mécanique + design + streetart dans tes données : c\'est LE croisement que peu de gens ont.', voies_acces: [{ formation: 'CAP Carrosserie option peinture + book artistique', duree: '2 ans', niveau_requis: '3ème', type: 'apprentissage', eligible_cpf: false, salaire_indicatif: null }], tension_marche: 'correcte', tags: ['Croisement', 'Créatif', 'Rare'], top: false, question_conversation: 'Tu connais des artistes qui peignent des motos ou des casques ? Ça t\'évoque quoi ?' },
-    { emoji: '🖌️', nom: 'Scénographe / constructeur de décors', signal: 'moyen', connu_du_jeune: false, fenetre: true, pourquoi_fenetre: 'Ce métier n\'apparaît nulle part dans ton feed — normal, personne n\'en fait des vidéos virales. Mais il croise exactement tes facettes : fabriquer + personnaliser + sens visuel. On te le montre parce que ton algorithme ne le fera jamais.', description_jeune: 'Tu construis les décors d\'événements, de spectacles, de plateaux télé. Un mélange de menuiserie, de design et de systèmes D que peu de gens connaissent.', pourquoi_toi: 'DIY bois + streetart + création visuelle = le profil type de l\'atelier décor.', voies_acces: [{ formation: 'CAP Menuisier puis DN MADE Scénographie', duree: '2 + 3 ans', niveau_requis: '3ème', type: 'classique', eligible_cpf: false, salaire_indicatif: null }], tension_marche: 'correcte', tags: ['Fenêtre', 'Visuel', 'Atelier'], top: false, question_conversation: 'T\'es déjà allé dans un endroit où l\'ambiance t\'a vraiment frappé ? Tu crois que quelqu\'un l\'a fabriquée ?' },
-    { emoji: '🚀', nom: 'Artisan à son compte (customisation)', signal: 'moyen', connu_du_jeune: true, fenetre: false, pourquoi_fenetre: null, description_jeune: 'À terme : ton propre atelier de customisation. Tu factures des pièces uniques, tu construis ta réputation en ligne — tu sais déjà faire du contenu.', pourquoi_toi: 'Ta recherche "auto-entrepreneur mineur" montre que l\'idée est déjà là. La voie : d\'abord le métier (CAP + expérience), ensuite l\'indépendance.', voies_acces: [{ formation: 'CAP + Brevet de Maîtrise + accompagnement création (BGE, CCI)', duree: '4-6 ans', niveau_requis: '3ème', type: 'apprentissage', eligible_cpf: false, salaire_indicatif: null }], tension_marche: 'correcte', tags: ['Entreprendre', 'Long terme'], top: false, question_conversation: 'C\'est quoi qui t\'attire dans l\'idée d\'être à ton compte : la liberté, l\'argent, ou faire les choses à ta façon ?' },
+    { emoji: '🔧', nom: 'Carrossier-peintre / customisateur', signal: 'fort', connu_du_jeune: true, fenetre: false, pourquoi_fenetre: null, description_jeune: 'Tu répares et transformes des véhicules — jusqu\'à la customisation complète. Chaque résultat est visible : tu vois ce que tu as fait.', pourquoi_toi: 'Recherche "CAP carrosserie salaire" + @carrosserie_pro : tu y penses déjà. Et ta facette "personnaliser" en fait plus qu\'un métier de réparation.', voies_acces: [{ formation: 'CAP Carrosserie (puis Bac Pro RC)', duree: '2 ans', niveau_requis: '3ème', type: 'apprentissage', eligible_cpf: false, salaire_indicatif: '1 600 – 2 400 €/mois' }], tension_marche: 'forte', tags: ['Manuel', 'Créatif', 'Concret'], top: true, question_conversation: 'Si on te confiait une voiture à transformer librement, tu en ferais quoi ?' },
+    { emoji: '🎨', nom: 'Peintre customisateur moto / auto', signal: 'moyen', connu_du_jeune: false, fenetre: false, pourquoi_fenetre: null, description_jeune: 'Le croisement exact de tes deux domaines : la mécanique ET le graphisme. Tu peins des réservoirs, des carrosseries, des casques — des pièces uniques.', pourquoi_toi: 'Mécanique + design + streetart dans tes données : c\'est LE croisement que peu de gens ont.', voies_acces: [{ formation: 'CAP Carrosserie option peinture + book artistique', duree: '2 ans', niveau_requis: '3ème', type: 'apprentissage', eligible_cpf: false, salaire_indicatif: '1 700 – 2 800 €/mois' }], tension_marche: 'correcte', tags: ['Croisement', 'Créatif', 'Rare'], top: false, question_conversation: 'Tu connais des artistes qui peignent des motos ou des casques ? Ça t\'évoque quoi ?' },
+    { emoji: '🖌️', nom: 'Scénographe / constructeur de décors', signal: 'moyen', connu_du_jeune: false, fenetre: true, pourquoi_fenetre: 'Ce métier n\'apparaît nulle part dans ton feed — normal, personne n\'en fait des vidéos virales. Mais il croise exactement tes facettes : fabriquer + personnaliser + sens visuel. On te le montre parce que ton algorithme ne le fera jamais.', description_jeune: 'Tu construis les décors d\'événements, de spectacles, de plateaux télé. Un mélange de menuiserie, de design et de systèmes D que peu de gens connaissent.', pourquoi_toi: 'DIY bois + streetart + création visuelle = le profil type de l\'atelier décor.', voies_acces: [{ formation: 'CAP Menuisier puis DN MADE Scénographie', duree: '2 + 3 ans', niveau_requis: '3ème', type: 'classique', eligible_cpf: false, salaire_indicatif: '1 700 – 2 500 €/mois' }], tension_marche: 'correcte', tags: ['Fenêtre', 'Visuel', 'Atelier'], top: false, question_conversation: 'T\'es déjà allé dans un endroit où l\'ambiance t\'a vraiment frappé ? Tu crois que quelqu\'un l\'a fabriquée ?' },
+    { emoji: '🚀', nom: 'Artisan à son compte (customisation)', signal: 'moyen', connu_du_jeune: true, fenetre: false, pourquoi_fenetre: null, description_jeune: 'À terme : ton propre atelier de customisation. Tu factures des pièces uniques, tu construis ta réputation en ligne — tu sais déjà faire du contenu.', pourquoi_toi: 'Ta recherche "auto-entrepreneur mineur" montre que l\'idée est déjà là. La voie : d\'abord le métier (CAP + expérience), ensuite l\'indépendance.', voies_acces: [{ formation: 'CAP + Brevet de Maîtrise + accompagnement création (BGE, CCI)', duree: '4-6 ans', niveau_requis: '3ème', type: 'apprentissage', eligible_cpf: false, salaire_indicatif: '2 000 – 4 000 €/mois' }], tension_marche: 'correcte', tags: ['Entreprendre', 'Long terme'], top: false, question_conversation: 'C\'est quoi qui t\'attire dans l\'idée d\'être à ton compte : la liberté, l\'argent, ou faire les choses à ta façon ?' },
   ],
   environnements: [
     { emoji: '🛠️', titre: 'Atelier ou studio',       sous: 'Faire avec ses mains, voir le résultat',     signal_source: 'DIY + mécanique dominent le visionnage' },
@@ -3323,7 +3445,8 @@ function jobCard(j) {
       </div>
       <p class="job-desc">${escHtml(j.description_jeune || '')}</p>
       ${pourquoi ? `<div class="pourquoi-box"><span class="pourquoi-label">${pourquoiLabel} ·</span> ${escHtml(pourquoi)}</div>` : ''}
-      ${voies ? `<div class="job-voie">${voies}${salaire ? ` — ${escHtml(salaire)} <span style="opacity:.6">(indicatif)</span>` : ''}</div>` : ''}
+      ${salaire ? `<div class="job-salaire">💶 <strong>${escHtml(salaire)}</strong> <span class="job-salaire-note">— fourchette indicative</span></div>` : ''}
+      ${voies ? `<div class="job-voie">${voies}</div>` : ''}
       ${(j.tags || []).length ? `<div class="job-tags">${j.tags.map(t => `<span class="job-tag">${escHtml(t)}</span>`).join('')}</div>` : ''}
     </div>`;
 }

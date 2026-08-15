@@ -15,3 +15,10 @@ Thumbs.db
 
 # Outils locaux
 .claude/
+
+# Données perso réelles (exports Instagram/TikTok — contiennent des messages privés)
+# NE JAMAIS committer : usage local de test uniquement
+instagram-*/
+tiktok-*/
+**/user_data.json
+*_instagram_activity/
